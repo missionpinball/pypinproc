@@ -710,7 +710,7 @@ PinPROC_write_data(pinproc_PinPROCObject *self, PyObject *args, PyObject *kwds)
 		PyErr_SetString(PyExc_IOError, PRGetLastErrorText()); //"Error writing data");
 		return NULL;
 	}
-			
+		
 	if (PRWriteData(self->handle, module, address, 1, (uint32_t *)&data) == kPRSuccess)
 	{
 		Py_INCREF(Py_None);
@@ -766,7 +766,7 @@ PinPROC_flush(pinproc_PinPROCObject *self, PyObject *args)
 }
 
 static PyObject *
-PinPROC_PRLED_fade_rate(pinproc_PinPROCObject *self, PyObject *args, PyObject *kwds)
+PinPROC_led_fade_rate(pinproc_PinPROCObject *self, PyObject *args, PyObject *kwds)
 {
 	int boardAddr;
 	int fadeRate;
@@ -791,7 +791,7 @@ PinPROC_PRLED_fade_rate(pinproc_PinPROCObject *self, PyObject *args, PyObject *k
 }
 
 static PyObject *
-PinPROC_PRLED_color(pinproc_PinPROCObject *self, PyObject *args, PyObject *kwds)
+PinPROC_led_color(pinproc_PinPROCObject *self, PyObject *args, PyObject *kwds)
 {
 	PRLED LED;
 	int boardAddr;
@@ -821,7 +821,7 @@ PinPROC_PRLED_color(pinproc_PinPROCObject *self, PyObject *args, PyObject *kwds)
 }
 
 static PyObject *
-PinPROC_PRLED_fade(pinproc_PinPROCObject *self, PyObject *args, PyObject *kwds)
+PinPROC_led_fade(pinproc_PinPROCObject *self, PyObject *args, PyObject *kwds)
 {
 	PRLED LED;
 	int boardAddr;
@@ -852,7 +852,7 @@ PinPROC_PRLED_fade(pinproc_PinPROCObject *self, PyObject *args, PyObject *kwds)
 }
 
 static PyObject *
-PinPROC_PRLED_fade_color(pinproc_PinPROCObject *self, PyObject *args, PyObject *kwds)
+PinPROC_led_fade_color(pinproc_PinPROCObject *self, PyObject *args, PyObject *kwds)
 {
 	PRLED LED;
 	int boardAddr;
@@ -1104,16 +1104,16 @@ static PyMethodDef PinPROC_methods[] = {
     {"reset", (PyCFunction)PinPROC_reset, METH_VARARGS,
      "Loads defaults into memory and optionally writes them to hardware."
     },
-    {"PRLED_fade_rate", (PyCFunction)PinPROC_PRLED_fade_rate, METH_VARARGS | METH_KEYWORDS,
+    {"led_fade_rate", (PyCFunction)PinPROC_led_fade_rate, METH_VARARGS | METH_KEYWORDS,
      "Sets the LED fade rate of a specific PD-LED board"
     },
-    {"PRLED_color", (PyCFunction)PinPROC_PRLED_color, METH_VARARGS | METH_KEYWORDS,
+    {"led_color", (PyCFunction)PinPROC_led_color, METH_VARARGS | METH_KEYWORDS,
      "Sets the color of a LED on a PD-LED board"
     },
-    {"PRLED_fade", (PyCFunction)PinPROC_PRLED_fade, METH_VARARGS | METH_KEYWORDS,
+    {"led_fade", (PyCFunction)PinPROC_led_fade, METH_VARARGS | METH_KEYWORDS,
      "Fades a LED to a given color at a given rate on a specific PD-LED board"
     },
-    {"PRLED_fade_color", (PyCFunction)PinPROC_PRLED_fade_color, METH_VARARGS | METH_KEYWORDS,
+    {"led_fade_color", (PyCFunction)PinPROC_led_fade_color, METH_VARARGS | METH_KEYWORDS,
      "Fades a LED to the given color at whatever fade rate has been set on a specific PD-LED board"
     },
     {NULL, NULL, NULL, NULL}  /* Sentinel */
