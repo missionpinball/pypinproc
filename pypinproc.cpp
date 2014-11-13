@@ -53,7 +53,7 @@ PRMachineType PyObjToMachineType(PyObject *machineTypeObj)
 {
 	if (PyInt_Check(machineTypeObj))
 		return (PRMachineType)PyInt_AsLong(machineTypeObj);
-	
+
 	if (!PyString_Check(machineTypeObj))
 		return kPRMachineInvalid;
 
@@ -67,7 +67,7 @@ PRMachineType PyObjToMachineType(PyObject *machineTypeObj)
 	// If an exception occurred in PyInt_FromString(), clear it:
 	if (PyErr_Occurred())
 		PyErr_Clear();
-	
+
 	if (strcmp(PyString_AsString(machineTypeObj), "wpc") == 0)
 		return kPRMachineWPC;
 	else if (strcmp(PyString_AsString(machineTypeObj), "wpcAlphanumeric") == 0)
@@ -82,7 +82,7 @@ PRMachineType PyObjToMachineType(PyObject *machineTypeObj)
 		return kPRMachinePDB;
 	else if (strcmp(PyString_AsString(machineTypeObj), "custom") == 0)
 		return kPRMachineCustom;
-	
+
 	return kPRMachineInvalid;
 }
 
@@ -103,7 +103,7 @@ PinPROC_init(pinproc_PinPROCObject *self, PyObject *args, PyObject *kwds)
 	}
 	//PRLogSetLevel(kPRLogVerbose);
 	self->handle = PRCreate(self->machineType);
-	
+
 	if (self->handle == kPRHandleInvalid)
 	{
 		PyErr_SetString(PyExc_IOError, PRGetLastErrorText());
@@ -156,7 +156,7 @@ PinPROC_driver_update_global_config(pinproc_PinPROCObject *self, PyObject *args,
 	{
 		return NULL;
 	}
-	
+
 	PRDriverGlobalConfig globals;
 	globals.enableOutputs = enableOutputs == Py_True;
 	globals.globalPolarity = globalPolarity == Py_True;
@@ -206,7 +206,7 @@ PinPROC_driver_update_group_config(pinproc_PinPROCObject *self, PyObject *args, 
 	{
 		return NULL;
 	}
-	
+
 	PRDriverGroupConfig group;
 	group.groupNum = groupNum;
         group.slowTime = slowTime;
@@ -242,7 +242,7 @@ PinPROC_driver_group_disable(pinproc_PinPROCObject *self, PyObject *args, PyObje
 	{
 		return NULL;
 	}
-	
+
 	PRResult res;
 	res = PRDriverGroupDisable(self->handle, number);
 	if (res == kPRSuccess)
@@ -266,7 +266,7 @@ PinPROC_driver_pulse(pinproc_PinPROCObject *self, PyObject *args, PyObject *kwds
 	{
 		return NULL;
 	}
-	
+
 	PRResult res;
 	res = PRDriverPulse(self->handle, number, milliseconds);
 	if (res == kPRSuccess)
@@ -290,7 +290,7 @@ PinPROC_driver_future_pulse(pinproc_PinPROCObject *self, PyObject *args, PyObjec
 	{
 		return NULL;
 	}
-	
+
 	PRResult res;
 	res = PRDriverFuturePulse(self->handle, number, milliseconds, futureTime);
 	if (res == kPRSuccess)
@@ -316,7 +316,7 @@ PinPROC_driver_schedule(pinproc_PinPROCObject *self, PyObject *args, PyObject *k
 	{
 		return NULL;
 	}
-	
+
 	PRResult res;
 	res = PRDriverSchedule(self->handle, number, (uint32_t)schedule, cycleSeconds, now == Py_True);
 	if (res == kPRSuccess)
@@ -339,7 +339,7 @@ PinPROC_driver_patter(pinproc_PinPROCObject *self, PyObject *args, PyObject *kwd
 	static char *kwlist[] = {"number", "milliseconds_on", "milliseconds_off", "original_on_time", "now", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "iiiiO", kwlist, &number, &millisOn, &millisOff, &originalOnTime, &now))
 		return NULL;
-	
+
 	PRResult res;
 	res = PRDriverPatter(self->handle, number, millisOn, millisOff, originalOnTime, now == Py_True);
 	if (res == kPRSuccess)
@@ -362,7 +362,7 @@ PinPROC_driver_pulsed_patter(pinproc_PinPROCObject *self, PyObject *args, PyObje
 	static char *kwlist[] = {"number", "milliseconds_on", "milliseconds_off", "milliseconds_overall_patter_time", "now", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "iiiiO", kwlist, &number, &millisOn, &millisOff, &millisPatterTime, &now))
 		return NULL;
-	
+
 	PRResult res;
 	res = PRDriverPulsedPatter(self->handle, number, millisOn, millisOff, millisPatterTime, now == Py_True);
 	if (res == kPRSuccess)
@@ -386,7 +386,7 @@ PinPROC_driver_disable(pinproc_PinPROCObject *self, PyObject *args, PyObject *kw
 	{
 		return NULL;
 	}
-	
+
 	PRResult res;
 	res = PRDriverDisable(self->handle, number);
 	if (res == kPRSuccess)
@@ -482,7 +482,7 @@ PinPROC_driver_get_state(pinproc_PinPROCObject *self, PyObject *args, PyObject *
 	{
 		return NULL;
 	}
-	
+
 	PRResult res;
 	PRDriverState driver;
 	res = PRDriverGetState(self->handle, number, &driver);
@@ -536,12 +536,12 @@ PinPROC_switch_get_states(pinproc_PinPROCObject *self, PyObject *args)
 		PyErr_SetString(PyExc_IOError, "Error getting driver state");
 		return NULL;
 	}
-	
+
 	for (int i = 0; i < numSwitches; i++)
 		PyList_SetItem(list, i, Py_BuildValue("i", procSwitchStates[i]));
-    
+
 	return list;
-}	
+}
 
 
 static PyObject *
@@ -556,7 +556,7 @@ PinPROC_switch_update_rule(pinproc_PinPROCObject *self, PyObject *args, PyObject
 	{
 		return NULL;
 	}
-	
+
 	PREventType eventType;
 	if (strcmp(eventTypeStr, "closed_debounced") == 0)
 		eventType = kPREventTypeSwitchClosedDebounced;
@@ -571,11 +571,11 @@ PinPROC_switch_update_rule(pinproc_PinPROCObject *self, PyObject *args, PyObject
 		PyErr_SetString(PyExc_ValueError, "event_type is unrecognized; valid values are <closed|open>_[non]debounced");
 		return NULL;
 	}
-	
+
 	PRSwitchRule rule;
 	if (!PyDictToSwitchRule(ruleObj, &rule))
 		return NULL;
-	
+
 	PRDriverState *drivers = NULL;
 	int numDrivers = 0;
 	if (linked_driversObj != NULL) {
@@ -640,7 +640,7 @@ PinPROC_aux_send_commands(pinproc_PinPROCObject *self, PyObject *args, PyObject 
 	{
 		return NULL;
 	}
-	
+
 	PRDriverAuxCommand *commands = NULL;
 	int numCommands = 0;
 	if (commandsObj != NULL) {
@@ -674,8 +674,8 @@ PinPROC_aux_send_commands(pinproc_PinPROCObject *self, PyObject *args, PyObject 
 		}
 	}
 
-	fprintf(stderr, "\n\nSending Aux Commands: numCommands:%d, addr:%d\n\n", numCommands, address);
-	
+	//fprintf(stderr, "\n\nSending Aux Commands: numCommands:%d, addr:%d\n\n", numCommands, address);
+
 	if (PRDriverAuxSendCommands(self->handle, commands, numCommands, address) == kPRSuccess)
 	{
 		if (commands)
@@ -690,6 +690,7 @@ PinPROC_aux_send_commands(pinproc_PinPROCObject *self, PyObject *args, PyObject 
 		PyErr_SetString(PyExc_IOError, PRGetLastErrorText()); //"Error sending aux commands");
 		return NULL;
 	}
+	PRFlushWriteData(self->handle);
 }
 
 static PyObject *
@@ -710,7 +711,7 @@ PinPROC_write_data(pinproc_PinPROCObject *self, PyObject *args, PyObject *kwds)
 		PyErr_SetString(PyExc_IOError, PRGetLastErrorText()); //"Error writing data");
 		return NULL;
 	}
-		
+
 	if (PRWriteData(self->handle, module, address, 1, (uint32_t *)&data) == kPRSuccess)
 	{
 		Py_INCREF(Py_None);
@@ -735,7 +736,7 @@ static PyObject *
 PinPROC_get_events(pinproc_PinPROCObject *self, PyObject *args)
 {
 	PyObject *list = PyList_New(0);
-	
+
 	//const int maxEvents = 16;
 	const int maxEvents = 2048;
 	PREvent events[maxEvents];
@@ -775,7 +776,7 @@ PinPROC_led_fade_rate(pinproc_PinPROCObject *self, PyObject *args, PyObject *kwd
 	{
 		return NULL;
 	}
-	
+
 	PRResult res;
 	res = PRLEDFadeRate(self->handle, boardAddr, fadeRate);
 	if (res == kPRSuccess)
@@ -805,7 +806,7 @@ PinPROC_led_color(pinproc_PinPROCObject *self, PyObject *args, PyObject *kwds)
 
 	LED.boardAddr = boardAddr;
 	LED.LEDIndex = LEDIndex;
-	
+
 	PRResult res;
 	res = PRLEDColor(self->handle, &LED, color);
 	if (res == kPRSuccess)
@@ -836,7 +837,7 @@ PinPROC_led_fade(pinproc_PinPROCObject *self, PyObject *args, PyObject *kwds)
 
 	LED.boardAddr = boardAddr;
 	LED.LEDIndex = LEDIndex;
-	
+
 	PRResult res;
 	res = PRLEDFade(self->handle, &LED, color, fadeRate);
 	if (res == kPRSuccess)
@@ -866,7 +867,7 @@ PinPROC_led_fade_color(pinproc_PinPROCObject *self, PyObject *args, PyObject *kw
 
 	LED.boardAddr = boardAddr;
 	LED.LEDIndex = LEDIndex;
-	
+
 	PRResult res;
 	res = PRLEDFadeColor(self->handle, &LED, color);
 	if (res == kPRSuccess)
@@ -902,7 +903,7 @@ void PRDMDConfigPopulateDefaults(PRDMDConfig *dmdConfig)
 		dmdConfig->latchHighCycles[i] = 15;
 		dmdConfig->dotclkHalfPeriod[i] = 1;
 	}
-	
+
 	dmdConfig->deHighCycles[0] = 90;
 	dmdConfig->deHighCycles[1] = 190; //250;
 	dmdConfig->deHighCycles[2] = 50;
@@ -919,7 +920,7 @@ PinPROC_dmd_update_config(pinproc_PinPROCObject *self, PyObject *args, PyObject 
 	{
 		return NULL;
 	}
-	
+
 	PRDMDConfig dmdConfig;
 	PRDMDConfigPopulateDefaults(&dmdConfig);
 
@@ -943,7 +944,7 @@ PinPROC_dmd_update_config(pinproc_PinPROCObject *self, PyObject *args, PyObject 
 			fprintf(stderr, "dmdConfig.deHighCycles[%d] = %d\n", i, dmdConfig.deHighCycles[i]);
 		}
 	}
-	
+
 	PRDMDUpdateConfig(self->handle, &dmdConfig);
 	self->dmdConfigured = true;
 
@@ -961,7 +962,7 @@ PinPROC_dmd_set_color_mapping(pinproc_PinPROCObject *self, PyObject *args, PyObj
 	{
 		return NULL;
 	}
-	
+
 	int len = PySequence_Length(mapping_list);
 	if (len != dmdMappingSize)
 	{
@@ -979,7 +980,7 @@ PinPROC_dmd_set_color_mapping(pinproc_PinPROCObject *self, PyObject *args, PyObj
 		self->dmdMapping[i] = PyInt_AsLong(item);
 		fprintf(stderr, "dmdMapping[%d] = %d\n", i, self->dmdMapping[i]);
 	}
-	
+
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -991,7 +992,7 @@ PinPROC_dmd_draw(pinproc_PinPROCObject *self, PyObject *args)
 	PyObject *dotsObj;
 	if (!PyArg_ParseTuple(args, "O", &dotsObj))
 		return NULL;
-	
+
 	if (!self->dmdConfigured)
 	{
 		PRDMDConfig dmdConfig;
@@ -1000,10 +1001,10 @@ PinPROC_dmd_draw(pinproc_PinPROCObject *self, PyObject *args)
 		ReturnOnErrorAndSetIOError(res);
 		self->dmdConfigured = true;
 	}
-	
+
 	uint8_t dots[4*kDMDColumns*kDMDRows/8];
 	memset(dots, 0, sizeof(dots));
-	
+
 	if (PyObject_TypeCheck(dotsObj, &pinproc_DMDBufferType))
 	{
 		pinproc_DMDBufferObject *buffer = (pinproc_DMDBufferObject *)dotsObj;
@@ -1020,10 +1021,10 @@ PinPROC_dmd_draw(pinproc_PinPROCObject *self, PyObject *args)
 		PyErr_SetString(PyExc_ValueError, "Expected DMDBuffer or string.");
 		return NULL;
 	}
-	
+
 	res = PRDMDDraw(self->handle, dots);
 	ReturnOnErrorAndSetIOError(res);
-	
+
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -1095,7 +1096,7 @@ static PyMethodDef PinPROC_methods[] = {
     {"write_data", (PyCFunction)PinPROC_write_data, METH_VARARGS | METH_KEYWORDS,
      "Write data directly to a P-ROC memory address"
     },
-    {"watchdog_tickle", (PyCFunction)PinPROC_watchdog_tickle, METH_VARARGS, 
+    {"watchdog_tickle", (PyCFunction)PinPROC_watchdog_tickle, METH_VARARGS,
 	 "Tickles the watchdog"
     },
     {"get_events", (PyCFunction)PinPROC_get_events, METH_VARARGS,
@@ -1181,6 +1182,7 @@ pinproc_normalize_machine_type(PyObject *self, PyObject *args, PyObject *kwds)
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", kwlist, &machineTypeObj))
 		return NULL;
 	PRMachineType machineType = PyObjToMachineType(machineTypeObj);
+	g_machineType = machineType;
 	return Py_BuildValue("i", machineType);
 }
 
@@ -1296,14 +1298,22 @@ pinproc_aux_command_output_primary(PyObject *self, PyObject *args, PyObject *kwd
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "iii", kwlist, &data, &extra_data, &delay_time))
 		return NULL;
 	PRDriverAuxCommand auxCommand;
-	if (g_machineType == kPRMachineWPCAlphanumeric) { 
-		PRDriverAuxPrepareOutput(&auxCommand, data, extra_data, 8, 0, delay_time);
+	if (g_machineType == kPRMachineWPCAlphanumeric) {
+	    PRDriverAuxPrepareOutput(&auxCommand, data, extra_data, 8, 0, delay_time);
 	}
 	else if (g_machineType == kPRMachineSternWhitestar ||
                  g_machineType == kPRMachineSternSAM) {
 		PRDriverAuxPrepareOutput(&auxCommand, data, 0, 6, 1, delay_time);
 	}
-	else return NULL;
+	else if (g_machineType == kPRMachinePDB) {
+		// If you're using the P3-ROC aux port for a single device, you don't need to specify enables/muxEnables.
+		// If you're using a P-ROC and/or want to specify enables/muxEnables, use pinproc_aux_command_output_custom instead.
+		PRDriverAuxPrepareOutput(&auxCommand, data, 0, 0, 0, delay_time);
+	}
+	else {
+		fprintf(stderr, "PreparingAuxOutput Unknown machineType");
+		return NULL;
+	}
 	return PyDictFromAuxCommand(&auxCommand);
 }
 
@@ -1379,14 +1389,14 @@ PyMODINIT_FUNC initpinproc()
         return;
     if (PyType_Ready(&pinproc_DMDBufferType) < 0)
         return;
-	
+
 	PyObject *m = Py_InitModule("pinproc", methods);
-	
+
 	Py_INCREF(&pinproc_PinPROCType);
 	PyModule_AddObject(m, "PinPROC", (PyObject*)&pinproc_PinPROCType);
 	Py_INCREF(&pinproc_DMDBufferType);
 	PyModule_AddObject(m, "DMDBuffer", (PyObject*)&pinproc_DMDBufferType);
-	
+
     PyModule_AddIntConstant(m, "EventTypeSwitchClosedDebounced", kPREventTypeSwitchClosedDebounced);
     PyModule_AddIntConstant(m, "EventTypeSwitchOpenDebounced", kPREventTypeSwitchOpenDebounced);
     PyModule_AddIntConstant(m, "EventTypeSwitchClosedNondebounced", kPREventTypeSwitchClosedNondebounced);
@@ -1410,7 +1420,7 @@ PyMODINIT_FUNC initpinproc()
     PyModule_AddIntConstant(m, "SwitchNeverDebounceFirst", kPRSwitchNeverDebounceFirst);
     PyModule_AddIntConstant(m, "SwitchNeverDebounceLast", kPRSwitchNeverDebounceLast);
     PyModule_AddIntConstant(m, "DriverCount", kPRDriverCount);
-    
+
 }
 
 }
