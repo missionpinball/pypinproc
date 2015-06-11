@@ -16,13 +16,20 @@ if 'ARCH' in os.environ:
 	extra_compile_args += ['-arch', os.environ['ARCH']]
 	extra_link_args += ['-arch', os.environ['ARCH']]
 
+if os.name == 'nt':
+	# Windows
+	libraries = ['pinproc', 'ftd2xx']
+else:
+	# Linux
+	libraries = ['usb', 'ftdi1', 'pinproc']
+
 module1 = Extension("pinproc",
-					include_dirs = ['../libpinproc/include'],
-					libraries = ['pinproc', 'ftd2xx'],
-					library_dirs = ['/usr/local/lib', '../libpinproc/bin'],
-					extra_compile_args = extra_compile_args,
-					extra_link_args = extra_link_args,
-					sources = ['pypinproc.cpp', 'dmdutil.cpp', 'dmd.c'])
+                    include_dirs = ['../libpinproc/include'],
+                    libraries = libraries,
+                    library_dirs = ['/usr/local/lib', '../libpinproc/bin'],
+                    extra_compile_args = extra_compile_args,
+                    extra_link_args = extra_link_args,
+                    sources = ['pypinproc.cpp', 'dmdutil.cpp', 'dmd.c'])
 
 setup(name = "pinproc",
       version = "2.0",
