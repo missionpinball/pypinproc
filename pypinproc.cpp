@@ -1,6 +1,8 @@
 #include <Python.h>
+#include "py3c.h"
 #include "pinproc.h"
 #include "dmdutil.h"
+
 
 extern "C" {
 
@@ -46,7 +48,7 @@ PinPROC_dealloc(PyObject* _self)
 		PRDelete(self->handle);
 		self->handle = kPRHandleInvalid;
 	}
-    self->ob_type->tp_free((PyObject*)self);
+    Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 PRMachineType PyObjToMachineType(PyObject *machineTypeObj)
@@ -54,10 +56,10 @@ PRMachineType PyObjToMachineType(PyObject *machineTypeObj)
 	if (PyInt_Check(machineTypeObj))
 		return (PRMachineType)PyInt_AsLong(machineTypeObj);
 
-	if (!PyString_Check(machineTypeObj))
+	if (!PyStr_Check(machineTypeObj))
 		return kPRMachineInvalid;
 
-	PyObject *intObject = PyInt_FromString(PyString_AsString(machineTypeObj), NULL, 0);
+	PyObject *intObject = PyInt_FromString(PyStr_AsString(machineTypeObj), NULL, 0);
 	if (intObject)
 	{
 		PRMachineType mt = (PRMachineType)PyInt_AsLong(intObject);
@@ -68,19 +70,19 @@ PRMachineType PyObjToMachineType(PyObject *machineTypeObj)
 	if (PyErr_Occurred())
 		PyErr_Clear();
 
-	if (strcmp(PyString_AsString(machineTypeObj), "wpc") == 0)
+	if (strcmp(PyStr_AsString(machineTypeObj), "wpc") == 0)
 		return kPRMachineWPC;
-	else if (strcmp(PyString_AsString(machineTypeObj), "wpcAlphanumeric") == 0)
+	else if (strcmp(PyStr_AsString(machineTypeObj), "wpcAlphanumeric") == 0)
 		return kPRMachineWPCAlphanumeric;
-	else if (strcmp(PyString_AsString(machineTypeObj), "wpc95") == 0)
+	else if (strcmp(PyStr_AsString(machineTypeObj), "wpc95") == 0)
 		return kPRMachineWPC95;
-	else if (strcmp(PyString_AsString(machineTypeObj), "sternSAM") == 0)
+	else if (strcmp(PyStr_AsString(machineTypeObj), "sternSAM") == 0)
 		return  kPRMachineSternSAM;
-	else if (strcmp(PyString_AsString(machineTypeObj), "sternWhitestar") == 0)
+	else if (strcmp(PyStr_AsString(machineTypeObj), "sternWhitestar") == 0)
 		return  kPRMachineSternWhitestar;
-	else if (strcmp(PyString_AsString(machineTypeObj), "pdb") == 0)
+	else if (strcmp(PyStr_AsString(machineTypeObj), "pdb") == 0)
 		return kPRMachinePDB;
-	else if (strcmp(PyString_AsString(machineTypeObj), "custom") == 0)
+	else if (strcmp(PyStr_AsString(machineTypeObj), "custom") == 0)
 		return kPRMachineCustom;
 
 	return kPRMachineInvalid;
@@ -1096,7 +1098,7 @@ static PyMethodDef PinPROC_methods[] = {
     {"write_data", (PyCFunction)PinPROC_write_data, METH_VARARGS | METH_KEYWORDS,
      "Write data directly to a P-ROC memory address"
     },
-    {"watchdog_tickle", (PyCFunction)PinPROC_watchdog_tickle, METH_VARARGS,
+	{"watchdog_tickle", (PyCFunction)PinPROC_watchdog_tickle, METH_VARARGS,
 	 "Tickles the watchdog"
     },
     {"get_events", (PyCFunction)PinPROC_get_events, METH_VARARGS,
@@ -1117,50 +1119,50 @@ static PyMethodDef PinPROC_methods[] = {
     {"led_fade_color", (PyCFunction)PinPROC_led_fade_color, METH_VARARGS | METH_KEYWORDS,
      "Fades a LED to the given color at whatever fade rate has been set on a specific PD-LED board"
     },
-    {NULL, NULL, NULL, NULL}  /* Sentinel */
+    {NULL, NULL, 0, NULL}  /* Sentinel */
 };
 
 static PyTypeObject pinproc_PinPROCType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         /*ob_size*/
-    "pinproc.PinPROC",         /*tp_name*/
-    sizeof(pinproc_PinPROCObject), /*tp_basicsize*/
-    0,                         /*tp_itemsize*/
-    PinPROC_dealloc,           /*tp_dealloc*/
-    0,                         /*tp_print*/
-    0,                         /*tp_getattr*/
-    0,                         /*tp_setattr*/
-    0,                         /*tp_compare*/
-    0,                         /*tp_repr*/
-    0,                         /*tp_as_number*/
-    0,                         /*tp_as_sequence*/
-    0,                         /*tp_as_mapping*/
-    0,                         /*tp_hash */
-    0,                         /*tp_call*/
-    0,                         /*tp_str*/
-    0,                         /*tp_getattro*/
-    0,                         /*tp_setattro*/
-    0,                         /*tp_as_buffer*/
-    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE, /*tp_flags*/
-    "PinPROC objects",         /* tp_doc */
-    0,		               /* tp_traverse */
-    0,		               /* tp_clear */
-    0,		               /* tp_richcompare */
-    0,		               /* tp_weaklistoffset */
-    0,		               /* tp_iter */
-    0,		               /* tp_iternext */
-    PinPROC_methods,             /* tp_methods */
-    0, //PinPROC_members,             /* tp_members */
-    0,                         /* tp_getset */
-    0,                         /* tp_base */
-    0,                         /* tp_dict */
-    0,                         /* tp_descr_get */
-    0,                         /* tp_descr_set */
-    0,                         /* tp_dictoffset */
-    (initproc)PinPROC_init,      /* tp_init */
-    0,                         /* tp_alloc */
-    PinPROC_new,                 /* tp_new */
+	PyVarObject_HEAD_INIT(NULL, 0)
+	"pinproc.PinPROC",         /* tp_name */
+	sizeof(pinproc_PinPROCObject), /* tp_basicsize */
+	0,                         /* tp_itemsize */
+	PinPROC_dealloc,           /* tp_dealloc */
+	0,                         /* tp_print */
+	0,                         /* tp_getattr */
+	0,                         /* tp_setattr */
+	0,                         /* tp_reserved */
+	0,                         /* tp_repr */
+	0,                         /* tp_as_number */
+	0,                         /* tp_as_sequence */
+	0,                         /* tp_as_mapping */
+	0,                         /* tp_hash  */
+	0,                         /* tp_call */
+	0,                         /* tp_str */
+	0,                         /* tp_getattro */
+	0,                         /* tp_setattro */
+	0,                         /* tp_as_buffer */
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /*tp_flags*/
+	"PinPROC objects",         /* tp_doc */
+	0,		               /* tp_traverse */
+	0,		               /* tp_clear */
+	0,		               /* tp_richcompare */
+	0,		               /* tp_weaklistoffset */
+	0,		               /* tp_iter */
+	0,		               /* tp_iternext */
+	PinPROC_methods,             /* tp_methods */
+	0, //PinPROC_members,             /* tp_members */
+	0,                         /* tp_getset */
+	0,                         /* tp_base */
+	0,                         /* tp_dict */
+	0,                         /* tp_descr_get */
+	0,                         /* tp_descr_set */
+	0,                         /* tp_dictoffset */
+	(initproc)PinPROC_init,      /* tp_init */
+	0,                         /* tp_alloc */
+	PinPROC_new,                 /* tp_new */
 };
+
 
 static PyObject *
 pinproc_decode(PyObject *self, PyObject *args, PyObject *kwds)
@@ -1171,7 +1173,7 @@ pinproc_decode(PyObject *self, PyObject *args, PyObject *kwds)
 		return NULL;
 	PRMachineType machineType = PyObjToMachineType(machineTypeObj);
 	g_machineType = machineType;
-	return Py_BuildValue("i", PRDecode(machineType, PyString_AsString(str)));
+	return Py_BuildValue("i", PRDecode(machineType, PyStr_AsString(str)));
 }
 
 static PyObject *
@@ -1365,6 +1367,7 @@ pinproc_aux_command_disable(PyObject *self, PyObject *args, PyObject *kwds)
 	return PyDictFromAuxCommand(&auxCommand);
 }
 
+
 PyMethodDef methods[] = {
 		{"decode", (PyCFunction)pinproc_decode, METH_VARARGS | METH_KEYWORDS, "Decode a switch, coil, or lamp number."},
 		{"normalize_machine_type", (PyCFunction)pinproc_normalize_machine_type, METH_VARARGS | METH_KEYWORDS, "Converts a string to an integer style machine type.  Integers pass through."},
@@ -1379,18 +1382,37 @@ PyMethodDef methods[] = {
 		{"aux_command_output_secondary", (PyCFunction)pinproc_aux_command_output_secondary, METH_VARARGS | METH_KEYWORDS, "Return a copy of the given secondary aux output command"},
 		{"aux_command_delay", (PyCFunction)pinproc_aux_command_delay, METH_VARARGS | METH_KEYWORDS, "Return a copy of the given aux delay command"},
 		{"aux_command_jump", (PyCFunction)pinproc_aux_command_jump, METH_VARARGS | METH_KEYWORDS, "Return a copy of the given aux jump command"},
-		{"aux_command_disable", (PyCFunction)pinproc_aux_command_disable, METH_VARARGS | METH_KEYWORDS, "Return a copy of the given aux command disabled"},
+		{ "aux_command_disable", (PyCFunction)pinproc_aux_command_disable, METH_VARARGS | METH_KEYWORDS, "Return a copy of the given aux command disabled" },
 		{NULL, NULL, 0, NULL}};
 
 PyMODINIT_FUNC initpinproc()
 {
+#if IS_PY3
 	//pinproc_PinPROCType.tp_new = PyType_GenericNew;
-    if (PyType_Ready(&pinproc_PinPROCType) < 0)
-        return;
-    if (PyType_Ready(&pinproc_DMDBufferType) < 0)
-        return;
+	if (PyType_Ready(&pinproc_PinPROCType) < 0)
+		return NULL;
+	if (PyType_Ready(&pinproc_DMDBufferType) < 0)
+		return NULL;
+
+	static struct PyModuleDef pinprocModule =
+	{
+		PyModuleDef_HEAD_INIT,
+		"pinproc", /* name of module */
+		"",          /* module documentation, may be NULL */
+		-1,          /* size of per-interpreter state of the module, or -1 if the module keeps state in global variables. */
+		methods
+	};
+
+	PyObject *m = PyModule_Create(&pinprocModule);
+#else
+	//pinproc_PinPROCType.tp_new = PyType_GenericNew;
+	if (PyType_Ready(&pinproc_PinPROCType) < 0)
+		return;
+	if (PyType_Ready(&pinproc_DMDBufferType) < 0)
+		return;
 
 	PyObject *m = Py_InitModule("pinproc", methods);
+#endif
 
 	Py_INCREF(&pinproc_PinPROCType);
 	PyModule_AddObject(m, "PinPROC", (PyObject*)&pinproc_PinPROCType);
@@ -1420,6 +1442,10 @@ PyMODINIT_FUNC initpinproc()
     PyModule_AddIntConstant(m, "SwitchNeverDebounceFirst", kPRSwitchNeverDebounceFirst);
     PyModule_AddIntConstant(m, "SwitchNeverDebounceLast", kPRSwitchNeverDebounceLast);
     PyModule_AddIntConstant(m, "DriverCount", kPRDriverCount);
+
+#if IS_PY3
+	return m;
+#endif
 
 }
 

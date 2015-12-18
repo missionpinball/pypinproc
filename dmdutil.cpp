@@ -31,7 +31,7 @@ DMDBuffer_dealloc(PyObject* _self)
 		DMDFrameDelete(self->frame);
 		self->frame = NULL;
 	}
-    self->ob_type->tp_free((PyObject*)self);
+	Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 static int
@@ -51,6 +51,7 @@ DMDBuffer_init(pinproc_DMDBufferObject *self, PyObject *args, PyObject *kwds)
 	}
     return 0;
 }
+
 static PyObject *
 DMDBuffer_clear(pinproc_DMDBufferObject *self, PyObject *args)
 {
@@ -67,15 +68,15 @@ DMDBuffer_set_data(pinproc_DMDBufferObject *self, PyObject *args, PyObject *kwds
 	{
 		return NULL;
 	}
-	unsigned frame_size = DMDFrameGetBufferSize(self->frame);
-	if (PyString_Size(data_str) != frame_size)
+	Py_ssize_t frame_size = DMDFrameGetBufferSize(self->frame);
+	if (PyBytes_Size(data_str) != frame_size)
 	{
-		fprintf(stderr, "length=%d != %d", (int)PyString_Size(data_str), frame_size);
+		fprintf(stderr, "length=%d != %d", (int)PyBytes_Size(data_str), (int)frame_size);
 		PyErr_SetString(PyExc_ValueError, "Buffer length is incorrect");
 		return NULL;
 	}
 
-	memcpy(self->frame->buffer, PyString_AsString(data_str), frame_size);
+	memcpy(self->frame->buffer, PyBytes_AsString(data_str), frame_size);
 
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -83,8 +84,9 @@ DMDBuffer_set_data(pinproc_DMDBufferObject *self, PyObject *args, PyObject *kwds
 static PyObject *
 DMDBuffer_get_data(pinproc_DMDBufferObject *self, PyObject *args, PyObject *kwds)
 {
-	return PyString_FromStringAndSize((char *)self->frame->buffer, DMDFrameGetBufferSize(self->frame));
+	return PyBytes_FromStringAndSize((char *)self->frame->buffer, DMDFrameGetBufferSize(self->frame));
 }
+
 static PyObject *
 DMDBuffer_get_data_mult(pinproc_DMDBufferObject *self, PyObject *args, PyObject *kwds)
 {
@@ -94,10 +96,11 @@ DMDBuffer_get_data_mult(pinproc_DMDBufferObject *self, PyObject *args, PyObject 
 		unsigned char c = (self->frame->buffer[i] + 1) * 16 - 1;
 		scratch->buffer[i] = c > 15 ? c : 0;
 	}
-	PyObject *output = PyString_FromStringAndSize((char*)scratch->buffer, DMDFrameGetBufferSize(self->frame));
+	PyObject *output = PyBytes_FromStringAndSize((char*)scratch->buffer, DMDFrameGetBufferSize(self->frame));
 	DMDFrameDelete(scratch);
 	return output;
 }
+
 static PyObject *
 DMDBuffer_get_dot(pinproc_DMDBufferObject *self, PyObject *args, PyObject *kwds)
 {
@@ -115,6 +118,7 @@ DMDBuffer_get_dot(pinproc_DMDBufferObject *self, PyObject *args, PyObject *kwds)
 
 	return Py_BuildValue("i", DMDFrameGetDot(self->frame, DMDPointMake(x, y)));
 }
+
 static PyObject *
 DMDBuffer_set_dot(pinproc_DMDBufferObject *self, PyObject *args, PyObject *kwds)
 {
@@ -135,6 +139,7 @@ DMDBuffer_set_dot(pinproc_DMDBufferObject *self, PyObject *args, PyObject *kwds)
 	Py_INCREF(Py_None);
 	return Py_None;
 }
+
 static PyObject *
 DMDBuffer_fill_rect(pinproc_DMDBufferObject *self, PyObject *args, PyObject *kwds)
 {
@@ -192,7 +197,6 @@ DMDBuffer_copy_to_rect(pinproc_DMDBufferObject *self, PyObject *args, PyObject *
 	return Py_None;
 }
 
-
 PyMethodDef DMDBuffer_methods[] = {
     {"clear", (PyCFunction)DMDBuffer_clear, METH_VARARGS,
      "Sets the DMD surface to be all black."
@@ -218,49 +222,48 @@ PyMethodDef DMDBuffer_methods[] = {
     {"copy_to_rect", (PyCFunction)DMDBuffer_copy_to_rect, METH_VARARGS|METH_KEYWORDS,
      "Copies a rect from this buffer to the given buffer."
     },
-    {NULL, NULL, NULL, NULL}  /* Sentinel */
+    {NULL, NULL, 0, NULL}  /* Sentinel */
 };
 
 PyTypeObject pinproc_DMDBufferType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         /*ob_size*/
-    "pinproc.DMDBuffer",         /*tp_name*/
-    sizeof(pinproc_DMDBufferObject), /*tp_basicsize*/
-    0,                         /*tp_itemsize*/
-    DMDBuffer_dealloc,           /*tp_dealloc*/
-    0,                         /*tp_print*/
-    0,                         /*tp_getattr*/
-    0,                         /*tp_setattr*/
-    0,                         /*tp_compare*/
-    0,                         /*tp_repr*/
-    0,                         /*tp_as_number*/
-    0,                         /*tp_as_sequence*/
-    0,                         /*tp_as_mapping*/
-    0,                         /*tp_hash */
-    0,                         /*tp_call*/
-    0,                         /*tp_str*/
-    0,                         /*tp_getattro*/
-    0,                         /*tp_setattro*/
-    0,                         /*tp_as_buffer*/
-    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE, /*tp_flags*/
-    "DMDBuffer object",         /* tp_doc */
-    0,		               /* tp_traverse */
-    0,		               /* tp_clear */
-    0,		               /* tp_richcompare */
-    0,		               /* tp_weaklistoffset */
-    0,		               /* tp_iter */
-    0,		               /* tp_iternext */
-    DMDBuffer_methods,             /* tp_methods */
-    0, //PinPROC_members,             /* tp_members */
-    0,                         /* tp_getset */
-    0,                         /* tp_base */
-    0,                         /* tp_dict */
-    0,                         /* tp_descr_get */
-    0,                         /* tp_descr_set */
-    0,                         /* tp_dictoffset */
-    (initproc)DMDBuffer_init,      /* tp_init */
-    0,                         /* tp_alloc */
-    DMDBuffer_new,                 /* tp_new */
+	PyVarObject_HEAD_INIT(NULL, 0)
+	"pinproc.DMDBuffer",         /* tp_name */
+	sizeof(pinproc_DMDBufferType), /* tp_basicsize */
+	0,                         /* tp_itemsize */
+	DMDBuffer_dealloc,           /* tp_dealloc */
+	0,                         /* tp_print */
+	0,                         /* tp_getattr */
+	0,                         /* tp_setattr */
+	0,                         /* tp_reserved */
+	0,                         /* tp_repr */
+	0,                         /* tp_as_number */
+	0,                         /* tp_as_sequence */
+	0,                         /* tp_as_mapping */
+	0,                         /* tp_hash  */
+	0,                         /* tp_call */
+	0,                         /* tp_str */
+	0,                         /* tp_getattro */
+	0,                         /* tp_setattro */
+	0,                         /* tp_as_buffer */
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /*tp_flags*/
+	"DMDBuffer objects",         /* tp_doc */
+	0,		               /* tp_traverse */
+	0,		               /* tp_clear */
+	0,		               /* tp_richcompare */
+	0,		               /* tp_weaklistoffset */
+	0,		               /* tp_iter */
+	0,		               /* tp_iternext */
+	DMDBuffer_methods,             /* tp_methods */
+	0, //PinPROC_members,             /* tp_members */
+	0,                         /* tp_getset */
+	0,                         /* tp_base */
+	0,                         /* tp_dict */
+	0,                         /* tp_descr_get */
+	0,                         /* tp_descr_set */
+	0,                         /* tp_dictoffset */
+	(initproc)DMDBuffer_init,      /* tp_init */
+	0,                         /* tp_alloc */
+	DMDBuffer_new,                 /* tp_new */
 };
 
 } // Extern "C"

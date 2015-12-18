@@ -53,7 +53,7 @@ typedef unsigned char DMDColor;
  * DMDRect, DMDSize, DMDPoint data structures adapted from Apple's Core Graphics data structures.
  */
 
-typedef int DMDDimension;
+typedef unsigned DMDDimension;
 
 typedef struct _DMDPoint {
 	DMDDimension x, y;
