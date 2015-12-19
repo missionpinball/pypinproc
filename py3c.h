@@ -27,8 +27,8 @@ SOFTWARE.
 
 #include <Python.h>
 
-#include "py3c\comparison.h"
-#include "py3c\compat.h"
+#include "py3c/comparison.h"
+#include "py3c/compat.h"
 
 
 #endif
