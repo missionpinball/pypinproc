@@ -1385,7 +1385,7 @@ PyMethodDef methods[] = {
 		{ "aux_command_disable", (PyCFunction)pinproc_aux_command_disable, METH_VARARGS | METH_KEYWORDS, "Return a copy of the given aux command disabled" },
 		{NULL, NULL, 0, NULL}};
 
-PyMODINIT_FUNC initpinproc()
+PyMODINIT_FUNC PyInit_pinproc()
 {
 #if IS_PY3
 	//pinproc_PinPROCType.tp_new = PyType_GenericNew;
