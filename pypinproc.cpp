@@ -727,6 +727,26 @@ PinPROC_write_data(pinproc_PinPROCObject *self, PyObject *args, PyObject *kwds)
 }
 
 static PyObject *
+PinPROC_read_data(pinproc_PinPROCObject *self, PyObject *args, PyObject *kwds)
+{
+
+	int module;
+	int address;
+	int data;
+	static char *kwlist[] = {"module", "address", NULL};
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "ii", kwlist, &module, &address))
+	{
+		return NULL;
+	}
+
+	PRReadData(self->handle, module, address, 1, (uint32_t *)&data);
+
+    PyObject* ret = PyLong_FromLong(data);
+    Py_INCREF(ret);
+    return ret;
+}
+
+static PyObject *
 PinPROC_watchdog_tickle(pinproc_PinPROCObject *self, PyObject *args)
 {
 	PRDriverWatchdogTickle(self->handle);
@@ -1098,6 +1118,9 @@ static PyMethodDef PinPROC_methods[] = {
     {"write_data", (PyCFunction)PinPROC_write_data, METH_VARARGS | METH_KEYWORDS,
      "Write data directly to a P-ROC memory address"
     },
+    {"read_data", (PyCFunction)PinPROC_read_data, METH_VARARGS | METH_KEYWORDS,
+     "Reads data directly from a P-ROC memory address"
+    },
 	{"watchdog_tickle", (PyCFunction)PinPROC_watchdog_tickle, METH_VARARGS,
 	 "Tickles the watchdog"
     },
@@ -1385,7 +1408,7 @@ PyMethodDef methods[] = {
 		{ "aux_command_disable", (PyCFunction)pinproc_aux_command_disable, METH_VARARGS | METH_KEYWORDS, "Return a copy of the given aux command disabled" },
 		{NULL, NULL, 0, NULL}};
 
-PyMODINIT_FUNC initpinproc()
+PyMODINIT_FUNC PyInit_pinproc()
 {
 #if IS_PY3
 	//pinproc_PinPROCType.tp_new = PyType_GenericNew;
