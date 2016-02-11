@@ -13,8 +13,8 @@ static PRMachineType g_machineType;
 const static int dmdMappingSize = 16;
 
 typedef struct {
-    PyObject_HEAD
-    /* Type-specific fields go here. */
+	PyObject_HEAD
+	/* Type-specific fields go here. */
 	PRHandle handle;
 	PRMachineType machineType; // We save it here because there's no "get machine type" in libpinproc.
 	bool dmdConfigured;
@@ -24,19 +24,19 @@ typedef struct {
 static PyObject *
 PinPROC_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
-    pinproc_PinPROCObject *self;
+	pinproc_PinPROCObject *self;
 
-    self = (pinproc_PinPROCObject *)type->tp_alloc(type, 0);
-    if (self != NULL) {
+	self = (pinproc_PinPROCObject *)type->tp_alloc(type, 0);
+	if (self != NULL) {
 		self->handle = kPRHandleInvalid;
 		self->dmdConfigured = false;
 		for (int i = 0; i < dmdMappingSize; i++)
 		{
 			self->dmdMapping[i] = i;
 		}
-    }
+	}
 
-    return (PyObject *)self;
+	return (PyObject *)self;
 }
 
 static void
@@ -48,7 +48,7 @@ PinPROC_dealloc(PyObject* _self)
 		PRDelete(self->handle);
 		self->handle = kPRHandleInvalid;
 	}
-    Py_TYPE(self)->tp_free((PyObject*)self);
+	Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 PRMachineType PyObjToMachineType(PyObject *machineTypeObj)
@@ -117,7 +117,7 @@ PinPROC_init(pinproc_PinPROCObject *self, PyObject *args, PyObject *kwds)
 	//	PRDriverLoadMachineTypeDefaults(self->handle, machineType);
 	//}
 
-    return 0;
+	return 0;
 }
 
 static PyObject *
@@ -142,7 +142,7 @@ PinPROC_driver_update_global_config(pinproc_PinPROCObject *self, PyObject *args,
 	PyObject *globalPolarity = Py_False;
 	PyObject *useClear = Py_False;
 	PyObject *strobeStartSelect = Py_False;
-        int startStrobeTime;
+		int startStrobeTime;
 	int matrixRowEnableIndex0;
 	int matrixRowEnableIndex1;
 	PyObject *activeLowMatrixRows = Py_False;
@@ -175,7 +175,7 @@ PinPROC_driver_update_global_config(pinproc_PinPROCObject *self, PyObject *args,
 	globals.watchdogResetTime = watchdogResetTime;
 
 	PRResult res;
-        res = PRDriverUpdateGlobalConfig(self->handle, &globals);
+		res = PRDriverUpdateGlobalConfig(self->handle, &globals);
 
 	if (res == kPRSuccess)
 	{
@@ -193,7 +193,7 @@ static PyObject *
 PinPROC_driver_update_group_config(pinproc_PinPROCObject *self, PyObject *args, PyObject *kwds)
 {
 	int groupNum;
-        int slowTime;
+		int slowTime;
 	int enableIndex;
 	int rowActivateIndex;
 	int rowEnableSelect;
@@ -211,17 +211,17 @@ PinPROC_driver_update_group_config(pinproc_PinPROCObject *self, PyObject *args, 
 
 	PRDriverGroupConfig group;
 	group.groupNum = groupNum;
-        group.slowTime = slowTime;
-        group.enableIndex = enableIndex;
-        group.rowActivateIndex = rowActivateIndex;
-        group.rowEnableSelect = rowEnableSelect;
-        group.matrixed = matrixed == Py_True;
-        group.polarity = polarity == Py_True;
-        group.active = active == Py_True;
-        group.disableStrobeAfter = disableStrobeAfter == Py_True;
+		group.slowTime = slowTime;
+		group.enableIndex = enableIndex;
+		group.rowActivateIndex = rowActivateIndex;
+		group.rowEnableSelect = rowEnableSelect;
+		group.matrixed = matrixed == Py_True;
+		group.polarity = polarity == Py_True;
+		group.active = active == Py_True;
+		group.disableStrobeAfter = disableStrobeAfter == Py_True;
 
 	PRResult res;
-        res = PRDriverUpdateGroupConfig(self->handle, &group);
+		res = PRDriverUpdateGroupConfig(self->handle, &group);
 
 	if (res == kPRSuccess)
 	{
@@ -532,9 +532,9 @@ PinPROC_switch_get_states(pinproc_PinPROCObject *self, PyObject *args)
 	const int numSwitches = kPRSwitchPhysicalLast + 1;
 	PyObject *list = PyList_New(numSwitches);
 	PREventType procSwitchStates[numSwitches];
-    // Get all of the switch states from the P-ROC.
-    if (PRSwitchGetStates(self->handle, procSwitchStates, numSwitches) == kPRFailure)
-    {
+	// Get all of the switch states from the P-ROC.
+	if (PRSwitchGetStates(self->handle, procSwitchStates, numSwitches) == kPRFailure)
+	{
 		PyErr_SetString(PyExc_IOError, "Error getting driver state");
 		return NULL;
 	}
@@ -586,22 +586,22 @@ PinPROC_switch_update_rule(pinproc_PinPROCObject *self, PyObject *args, PyObject
 
 	bool use_column_8;
 	use_column_8 = g_machineType == kPRMachineWPC;
-        static bool firstTime = true;
-        if (firstTime)
-        {
-            firstTime = false;
-            PRSwitchConfig switchConfig;
-            switchConfig.clear = false;
-            switchConfig.use_column_8 = use_column_8;
-            switchConfig.use_column_9 = false; // No WPC machines actually use this
-            switchConfig.hostEventsEnable = true;
-            switchConfig.directMatrixScanLoopTime = 2; // milliseconds
-            switchConfig.pulsesBeforeCheckingRX = 10;
-            switchConfig.inactivePulsesAfterBurst = 12;
-            switchConfig.pulsesPerBurst = 6;
-            switchConfig.pulseHalfPeriodTime = 13; // milliseconds
-            PRSwitchUpdateConfig(self->handle, &switchConfig);
-        }
+		static bool firstTime = true;
+		if (firstTime)
+		{
+			firstTime = false;
+			PRSwitchConfig switchConfig;
+			switchConfig.clear = false;
+			switchConfig.use_column_8 = use_column_8;
+			switchConfig.use_column_9 = false; // No WPC machines actually use this
+			switchConfig.hostEventsEnable = true;
+			switchConfig.directMatrixScanLoopTime = 2; // milliseconds
+			switchConfig.pulsesBeforeCheckingRX = 10;
+			switchConfig.inactivePulsesAfterBurst = 12;
+			switchConfig.pulsesPerBurst = 6;
+			switchConfig.pulseHalfPeriodTime = 13; // milliseconds
+			PRSwitchUpdateConfig(self->handle, &switchConfig);
+		}
 
 	if (numDrivers > 0)
 	{
@@ -741,9 +741,9 @@ PinPROC_read_data(pinproc_PinPROCObject *self, PyObject *args, PyObject *kwds)
 
 	PRReadData(self->handle, module, address, 1, (uint32_t *)&data);
 
-    PyObject* ret = PyLong_FromLong(data);
-    Py_INCREF(ret);
-    return ret;
+	PyObject* ret = PyLong_FromLong(data);
+	Py_INCREF(ret);
+	return ret;
 }
 
 static PyObject *
@@ -1061,88 +1061,88 @@ PinPROC_dmd_draw(pinproc_PinPROCObject *self, PyObject *args)
 //     {NULL, NULL, NULL, 0, NULL}  /* Sentinel */
 // };
 static PyMethodDef PinPROC_methods[] = {
-    {"dmd_draw", (PyCFunction)PinPROC_dmd_draw, METH_VARARGS,
-     "Fetches recent events from P-ROC."
-    },
-    {"set_dmd_color_mapping", (PyCFunction)PinPROC_dmd_set_color_mapping, METH_VARARGS | METH_KEYWORDS,
-     "Configures the DMD color mapping"
-    },
-    {"dmd_update_config", (PyCFunction)PinPROC_dmd_update_config, METH_VARARGS | METH_KEYWORDS,
-     "Configures the DMD"
-    },
-    {"driver_update_global_config", (PyCFunction)PinPROC_driver_update_global_config, METH_VARARGS | METH_KEYWORDS,
-     "Sets the driver global configuratiaon"
-    },
-    {"driver_update_group_config", (PyCFunction)PinPROC_driver_update_group_config, METH_VARARGS | METH_KEYWORDS,
-     "Sets the driver group configuratiaon"
-    },
-    {"driver_group_disable", (PyCFunction)PinPROC_driver_group_disable, METH_VARARGS | METH_KEYWORDS,
-     "Disables the specified driver group"
-    },
-    {"driver_pulse", (PyCFunction)PinPROC_driver_pulse, METH_VARARGS | METH_KEYWORDS,
-     "Pulses the specified driver"
-    },
-    {"driver_future_pulse", (PyCFunction)PinPROC_driver_future_pulse, METH_VARARGS | METH_KEYWORDS,
-     "Pulses the specified driver at a future time"
-    },
-    {"driver_schedule", (PyCFunction)PinPROC_driver_schedule, METH_VARARGS | METH_KEYWORDS,
-     "Schedules the specified driver"
-    },
-    {"driver_patter", (PyCFunction)PinPROC_driver_patter, METH_VARARGS | METH_KEYWORDS,
-     "Patters the specified driver"
-    },
-    {"driver_pulsed_patter", (PyCFunction)PinPROC_driver_pulsed_patter, METH_VARARGS | METH_KEYWORDS,
-     "Pulse-Patters the specified driver"
-    },
-    {"driver_disable", (PyCFunction)PinPROC_driver_disable, METH_VARARGS | METH_KEYWORDS,
-     "Disables the specified driver"
-    },
-    {"driver_get_state", (PyCFunction)PinPROC_driver_get_state, METH_VARARGS | METH_KEYWORDS,
-     "Returns the state of the specified driver"
-    },
-    {"driver_update_state", (PyCFunction)PinPROC_driver_update_state, METH_VARARGS | METH_KEYWORDS,
-     "Sets the state of the specified driver"
-    },
-    {"flush", (PyCFunction)PinPROC_flush, METH_VARARGS,
-     "Writes out all buffered data to the hardware"
-    },
-    {"switch_get_states", (PyCFunction)PinPROC_switch_get_states, METH_VARARGS,
-     "Gets the current state of all of the switches"
-    },
-    {"switch_update_rule", (PyCFunction)PinPROC_switch_update_rule, METH_VARARGS | METH_KEYWORDS,
-     "Sets the state of the specified driver"
-    },
-    {"aux_send_commands", (PyCFunction)PinPROC_aux_send_commands, METH_VARARGS | METH_KEYWORDS,
-     "Writes aux port commands into the Aux port instruction memory"
-    },
-    {"write_data", (PyCFunction)PinPROC_write_data, METH_VARARGS | METH_KEYWORDS,
-     "Write data directly to a P-ROC memory address"
-    },
-    {"read_data", (PyCFunction)PinPROC_read_data, METH_VARARGS | METH_KEYWORDS,
-     "Reads data directly from a P-ROC memory address"
-    },
+	{"dmd_draw", (PyCFunction)PinPROC_dmd_draw, METH_VARARGS,
+		"Fetches recent events from P-ROC."
+	},
+	{"set_dmd_color_mapping", (PyCFunction)PinPROC_dmd_set_color_mapping, METH_VARARGS | METH_KEYWORDS,
+		"Configures the DMD color mapping"
+	},
+	{"dmd_update_config", (PyCFunction)PinPROC_dmd_update_config, METH_VARARGS | METH_KEYWORDS,
+		"Configures the DMD"
+	},
+	{"driver_update_global_config", (PyCFunction)PinPROC_driver_update_global_config, METH_VARARGS | METH_KEYWORDS,
+		"Sets the driver global configuratiaon"
+	},
+	{"driver_update_group_config", (PyCFunction)PinPROC_driver_update_group_config, METH_VARARGS | METH_KEYWORDS,
+		"Sets the driver group configuratiaon"
+	},
+	{"driver_group_disable", (PyCFunction)PinPROC_driver_group_disable, METH_VARARGS | METH_KEYWORDS,
+		"Disables the specified driver group"
+	},
+	{"driver_pulse", (PyCFunction)PinPROC_driver_pulse, METH_VARARGS | METH_KEYWORDS,
+		"Pulses the specified driver"
+	},
+	{"driver_future_pulse", (PyCFunction)PinPROC_driver_future_pulse, METH_VARARGS | METH_KEYWORDS,
+		"Pulses the specified driver at a future time"
+	},
+	{"driver_schedule", (PyCFunction)PinPROC_driver_schedule, METH_VARARGS | METH_KEYWORDS,
+		"Schedules the specified driver"
+	},
+	{"driver_patter", (PyCFunction)PinPROC_driver_patter, METH_VARARGS | METH_KEYWORDS,
+		"Patters the specified driver"
+	},
+	{"driver_pulsed_patter", (PyCFunction)PinPROC_driver_pulsed_patter, METH_VARARGS | METH_KEYWORDS,
+		"Pulse-Patters the specified driver"
+	},
+	{"driver_disable", (PyCFunction)PinPROC_driver_disable, METH_VARARGS | METH_KEYWORDS,
+		"Disables the specified driver"
+	},
+	{"driver_get_state", (PyCFunction)PinPROC_driver_get_state, METH_VARARGS | METH_KEYWORDS,
+		"Returns the state of the specified driver"
+	},
+	{"driver_update_state", (PyCFunction)PinPROC_driver_update_state, METH_VARARGS | METH_KEYWORDS,
+		"Sets the state of the specified driver"
+	},
+	{"flush", (PyCFunction)PinPROC_flush, METH_VARARGS,
+		"Writes out all buffered data to the hardware"
+	},
+	{"switch_get_states", (PyCFunction)PinPROC_switch_get_states, METH_VARARGS,
+		"Gets the current state of all of the switches"
+	},
+	{"switch_update_rule", (PyCFunction)PinPROC_switch_update_rule, METH_VARARGS | METH_KEYWORDS,
+		"Sets the state of the specified driver"
+	},
+	{"aux_send_commands", (PyCFunction)PinPROC_aux_send_commands, METH_VARARGS | METH_KEYWORDS,
+		"Writes aux port commands into the Aux port instruction memory"
+	},
+	{"write_data", (PyCFunction)PinPROC_write_data, METH_VARARGS | METH_KEYWORDS,
+		"Write data directly to a P-ROC memory address"
+	},
+	{"read_data", (PyCFunction)PinPROC_read_data, METH_VARARGS | METH_KEYWORDS,
+		"Reads data directly from a P-ROC memory address"
+	},
 	{"watchdog_tickle", (PyCFunction)PinPROC_watchdog_tickle, METH_VARARGS,
-	 "Tickles the watchdog"
-    },
-    {"get_events", (PyCFunction)PinPROC_get_events, METH_VARARGS,
-     "Fetches recent events from P-ROC."
-    },
-    {"reset", (PyCFunction)PinPROC_reset, METH_VARARGS,
-     "Loads defaults into memory and optionally writes them to hardware."
-    },
-    {"led_fade_rate", (PyCFunction)PinPROC_led_fade_rate, METH_VARARGS | METH_KEYWORDS,
-     "Sets the LED fade rate of a specific PD-LED board"
-    },
-    {"led_color", (PyCFunction)PinPROC_led_color, METH_VARARGS | METH_KEYWORDS,
-     "Sets the color of a LED on a PD-LED board"
-    },
-    {"led_fade", (PyCFunction)PinPROC_led_fade, METH_VARARGS | METH_KEYWORDS,
-     "Fades a LED to a given color at a given rate on a specific PD-LED board"
-    },
-    {"led_fade_color", (PyCFunction)PinPROC_led_fade_color, METH_VARARGS | METH_KEYWORDS,
-     "Fades a LED to the given color at whatever fade rate has been set on a specific PD-LED board"
-    },
-    {NULL, NULL, 0, NULL}  /* Sentinel */
+		"Tickles the watchdog"
+	},
+	{"get_events", (PyCFunction)PinPROC_get_events, METH_VARARGS,
+		"Fetches recent events from P-ROC."
+	},
+	{"reset", (PyCFunction)PinPROC_reset, METH_VARARGS,
+		"Loads defaults into memory and optionally writes them to hardware."
+	},
+	{"led_fade_rate", (PyCFunction)PinPROC_led_fade_rate, METH_VARARGS | METH_KEYWORDS,
+		"Sets the LED fade rate of a specific PD-LED board"
+	},
+	{"led_color", (PyCFunction)PinPROC_led_color, METH_VARARGS | METH_KEYWORDS,
+		"Sets the color of a LED on a PD-LED board"
+	},
+	{"led_fade", (PyCFunction)PinPROC_led_fade, METH_VARARGS | METH_KEYWORDS,
+		"Fades a LED to a given color at a given rate on a specific PD-LED board"
+	},
+	{"led_fade_color", (PyCFunction)PinPROC_led_fade_color, METH_VARARGS | METH_KEYWORDS,
+		"Fades a LED to the given color at whatever fade rate has been set on a specific PD-LED board"
+	},
+	{NULL, NULL, 0, NULL}  /* Sentinel */
 };
 
 static PyTypeObject pinproc_PinPROCType = {
@@ -1324,10 +1324,10 @@ pinproc_aux_command_output_primary(PyObject *self, PyObject *args, PyObject *kwd
 		return NULL;
 	PRDriverAuxCommand auxCommand;
 	if (g_machineType == kPRMachineWPCAlphanumeric) {
-	    PRDriverAuxPrepareOutput(&auxCommand, data, extra_data, 8, 0, delay_time);
+		PRDriverAuxPrepareOutput(&auxCommand, data, extra_data, 8, 0, delay_time);
 	}
 	else if (g_machineType == kPRMachineSternWhitestar ||
-                 g_machineType == kPRMachineSternSAM) {
+					g_machineType == kPRMachineSternSAM) {
 		PRDriverAuxPrepareOutput(&auxCommand, data, 0, 6, 1, delay_time);
 	}
 	else if (g_machineType == kPRMachinePDB) {
@@ -1351,7 +1351,7 @@ pinproc_aux_command_output_secondary(PyObject *self, PyObject *args, PyObject *k
 		return NULL;
 	PRDriverAuxCommand auxCommand;
 	if (g_machineType == kPRMachineSternWhitestar ||
-                 g_machineType == kPRMachineSternSAM) {
+					g_machineType == kPRMachineSternSAM) {
 		PRDriverAuxPrepareOutput(&auxCommand, data, 0, 11, 1, delay_time);
 	}
 	else return NULL;
@@ -1408,68 +1408,57 @@ PyMethodDef methods[] = {
 		{ "aux_command_disable", (PyCFunction)pinproc_aux_command_disable, METH_VARARGS | METH_KEYWORDS, "Return a copy of the given aux command disabled" },
 		{NULL, NULL, 0, NULL}};
 
-PyMODINIT_FUNC PyInit_pinproc()
+static struct PyModuleDef pinprocModule =
 {
-#if IS_PY3
-	//pinproc_PinPROCType.tp_new = PyType_GenericNew;
-	if (PyType_Ready(&pinproc_PinPROCType) < 0)
-		return NULL;
-	if (PyType_Ready(&pinproc_DMDBufferType) < 0)
-		return NULL;
+	PyModuleDef_HEAD_INIT,
+	"pinproc", /* name of module */
+	NULL,          /* module documentation, may be NULL */
+	-1,          /* size of per-interpreter state of the module, or -1 if the module keeps state in global variables. */
+	methods
+};
 
-	static struct PyModuleDef pinprocModule =
-	{
-		PyModuleDef_HEAD_INIT,
-		"pinproc", /* name of module */
-		"",          /* module documentation, may be NULL */
-		-1,          /* size of per-interpreter state of the module, or -1 if the module keeps state in global variables. */
-		methods
-	};
+MODULE_INIT_FUNC(pinproc)
+{
+	//pinproc_PinPROCType.tp_new = PyType_GenericNew;
+	//if (PyType_Ready(&pinproc_PinPROCType) < 0)
+	//	return NULL;
+	//if (PyType_Ready(&pinproc_DMDBufferType) < 0)
+	//	return NULL;
 
 	PyObject *m = PyModule_Create(&pinprocModule);
-#else
-	//pinproc_PinPROCType.tp_new = PyType_GenericNew;
-	if (PyType_Ready(&pinproc_PinPROCType) < 0)
-		return;
-	if (PyType_Ready(&pinproc_DMDBufferType) < 0)
-		return;
-
-	PyObject *m = Py_InitModule("pinproc", methods);
-#endif
 
 	Py_INCREF(&pinproc_PinPROCType);
 	PyModule_AddObject(m, "PinPROC", (PyObject*)&pinproc_PinPROCType);
 	Py_INCREF(&pinproc_DMDBufferType);
 	PyModule_AddObject(m, "DMDBuffer", (PyObject*)&pinproc_DMDBufferType);
 
-    PyModule_AddIntConstant(m, "EventTypeSwitchClosedDebounced", kPREventTypeSwitchClosedDebounced);
-    PyModule_AddIntConstant(m, "EventTypeSwitchOpenDebounced", kPREventTypeSwitchOpenDebounced);
-    PyModule_AddIntConstant(m, "EventTypeSwitchClosedNondebounced", kPREventTypeSwitchClosedNondebounced);
-    PyModule_AddIntConstant(m, "EventTypeSwitchOpenNondebounced", kPREventTypeSwitchOpenNondebounced);
-    PyModule_AddIntConstant(m, "EventTypeDMDFrameDisplayed", kPREventTypeDMDFrameDisplayed);
-    PyModule_AddIntConstant(m, "EventTypeBurstSwitchOpen", kPREventTypeBurstSwitchOpen);
-    PyModule_AddIntConstant(m, "EventTypeBurstSwitchClosed", kPREventTypeBurstSwitchClosed);
-    PyModule_AddIntConstant(m, "EventTypeAccelerometerX", kPREventTypeAccelerometerX);
-    PyModule_AddIntConstant(m, "EventTypeAccelerometerY", kPREventTypeAccelerometerY);
-    PyModule_AddIntConstant(m, "EventTypeAccelerometerZ", kPREventTypeAccelerometerZ);
-    PyModule_AddIntConstant(m, "EventTypeAccelerometerIRQ", kPREventTypeAccelerometerIRQ);
-    PyModule_AddIntConstant(m, "MachineTypeWPC", kPRMachineWPC);
-    PyModule_AddIntConstant(m, "MachineTypeWPCAlphanumeric", kPRMachineWPCAlphanumeric);
-    PyModule_AddIntConstant(m, "MachineTypeWPC95", kPRMachineWPC95);
-    PyModule_AddIntConstant(m, "MachineTypeSternSAM", kPRMachineSternSAM);
-    PyModule_AddIntConstant(m, "MachineTypeSternWhitestar", kPRMachineSternWhitestar);
-    PyModule_AddIntConstant(m, "MachineTypePDB", kPRMachinePDB);
-    PyModule_AddIntConstant(m, "MachineTypeCustom", kPRMachineCustom);
-    PyModule_AddIntConstant(m, "MachineTypeInvalid", kPRMachineInvalid);
-    PyModule_AddIntConstant(m, "SwitchCount", kPRSwitchPhysicalLast);
-    PyModule_AddIntConstant(m, "SwitchNeverDebounceFirst", kPRSwitchNeverDebounceFirst);
-    PyModule_AddIntConstant(m, "SwitchNeverDebounceLast", kPRSwitchNeverDebounceLast);
-    PyModule_AddIntConstant(m, "DriverCount", kPRDriverCount);
+	PyModule_AddIntConstant(m, "EventTypeSwitchClosedDebounced", kPREventTypeSwitchClosedDebounced);
+	PyModule_AddIntConstant(m, "EventTypeSwitchOpenDebounced", kPREventTypeSwitchOpenDebounced);
+	PyModule_AddIntConstant(m, "EventTypeSwitchClosedNondebounced", kPREventTypeSwitchClosedNondebounced);
+	PyModule_AddIntConstant(m, "EventTypeSwitchOpenNondebounced", kPREventTypeSwitchOpenNondebounced);
+	PyModule_AddIntConstant(m, "EventTypeDMDFrameDisplayed", kPREventTypeDMDFrameDisplayed);
+	PyModule_AddIntConstant(m, "EventTypeBurstSwitchOpen", kPREventTypeBurstSwitchOpen);
+	PyModule_AddIntConstant(m, "EventTypeBurstSwitchClosed", kPREventTypeBurstSwitchClosed);
+	PyModule_AddIntConstant(m, "EventTypeAccelerometerX", kPREventTypeAccelerometerX);
+	PyModule_AddIntConstant(m, "EventTypeAccelerometerY", kPREventTypeAccelerometerY);
+	PyModule_AddIntConstant(m, "EventTypeAccelerometerZ", kPREventTypeAccelerometerZ);
+	PyModule_AddIntConstant(m, "EventTypeAccelerometerIRQ", kPREventTypeAccelerometerIRQ);
+	PyModule_AddIntConstant(m, "MachineTypeWPC", kPRMachineWPC);
+	PyModule_AddIntConstant(m, "MachineTypeWPCAlphanumeric", kPRMachineWPCAlphanumeric);
+	PyModule_AddIntConstant(m, "MachineTypeWPC95", kPRMachineWPC95);
+	PyModule_AddIntConstant(m, "MachineTypeSternSAM", kPRMachineSternSAM);
+	PyModule_AddIntConstant(m, "MachineTypeSternWhitestar", kPRMachineSternWhitestar);
+	PyModule_AddIntConstant(m, "MachineTypePDB", kPRMachinePDB);
+	PyModule_AddIntConstant(m, "MachineTypeCustom", kPRMachineCustom);
+	PyModule_AddIntConstant(m, "MachineTypeInvalid", kPRMachineInvalid);
+	PyModule_AddIntConstant(m, "SwitchCount", kPRSwitchPhysicalLast);
+	PyModule_AddIntConstant(m, "SwitchNeverDebounceFirst", kPRSwitchNeverDebounceFirst);
+	PyModule_AddIntConstant(m, "SwitchNeverDebounceLast", kPRSwitchNeverDebounceLast);
+	PyModule_AddIntConstant(m, "DriverCount", kPRDriverCount);
 
-#if IS_PY3
 	return m;
-#endif
 
 }
 
 }
+
