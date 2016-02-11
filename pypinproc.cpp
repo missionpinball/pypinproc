@@ -1408,22 +1408,22 @@ PyMethodDef methods[] = {
 		{ "aux_command_disable", (PyCFunction)pinproc_aux_command_disable, METH_VARARGS | METH_KEYWORDS, "Return a copy of the given aux command disabled" },
 		{NULL, NULL, 0, NULL}};
 
-static struct PyModuleDef pinprocModule =
-{
-	PyModuleDef_HEAD_INIT,
-	"pinproc", /* name of module */
-	NULL,          /* module documentation, may be NULL */
-	-1,          /* size of per-interpreter state of the module, or -1 if the module keeps state in global variables. */
-	methods
-};
-
 MODULE_INIT_FUNC(pinproc)
 {
-	//pinproc_PinPROCType.tp_new = PyType_GenericNew;
-	//if (PyType_Ready(&pinproc_PinPROCType) < 0)
-	//	return NULL;
-	//if (PyType_Ready(&pinproc_DMDBufferType) < 0)
-	//	return NULL;
+	pinproc_PinPROCType.tp_new = PyType_GenericNew;
+	if (PyType_Ready(&pinproc_PinPROCType) < 0)
+		return NULL;
+	if (PyType_Ready(&pinproc_DMDBufferType) < 0)
+		return NULL;
+
+	static struct PyModuleDef pinprocModule =
+	{
+		PyModuleDef_HEAD_INIT,
+		"pinproc", /* name of module */
+		NULL,          /* module documentation, may be NULL */
+		-1,          /* size of per-interpreter state of the module, or -1 if the module keeps state in global variables. */
+		methods
+	};
 
 	PyObject *m = PyModule_Create(&pinprocModule);
 
