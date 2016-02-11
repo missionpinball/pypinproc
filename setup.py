@@ -1,9 +1,5 @@
-﻿# To run pyprocgame under Snow Leopard when libs are compiled 32-bit: export VERSIONER_PYTHON_PREFER_32_BIT=yes
-
-# From: http://superjared.com/entry/anatomy-python-c-module/
-from distutils.core import setup, Extension
-import os
-import sys
+﻿import os
+from setuptools import setup, Extension
 
 extra_compile_args = ['-O0', '-g']
 extra_compile_args.append('-Wno-write-strings')  # fix "warning: deprecated conversion from string constant to 'char*'"
