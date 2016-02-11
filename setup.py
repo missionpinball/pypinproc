@@ -26,6 +26,39 @@ module1 = Extension("pinproc",
                     extra_link_args=extra_link_args,
                     sources=['pypinproc.cpp', 'dmdutil.cpp', 'dmd.c'])
 
-setup(name="pinproc",
-      version="2.1",
-      ext_modules=[module1])
+setup(
+        name="pypinproc",
+        version="2.1",
+
+        description='Python wrapper for libpinproc',
+        long_description='''pypinproc is a native Python extension exposing the
+        libpinproc API to Python programs. pypinproc provides a low-level
+        interface for controlling a Multimorphic P-ROC or P3-ROC (http://www.pinballcontrollers.com/)
+        Pinball Remote Operations Controller from Python.
+
+        Note that Python wheels include libpinproc as well. Building manually
+        requires that you build and install libpinproc first.''',
+
+        url='http://www.pinballcontrollers.com/forum/index.php?board=10.0',
+        author='Adam Preble, Gerry Stellenberg, & the home brew pinball '
+               'community',
+        author_email='brian@missionpinball.com',
+        license='MIT',
+
+        classifiers=[
+            'Development Status :: 5 - Production/Stable',
+            'Intended Audience :: Developers',
+            'License :: OSI Approved :: MIT License',
+            'Programming Language :: Python :: 2.6',
+            'Programming Language :: Python :: 2.7',
+            'Programming Language :: Python :: 3.4',
+            'Programming Language :: Python :: 3.5',
+            'Natural Language :: English',
+            'Operating System :: MacOS :: MacOS X',
+            'Operating System :: Microsoft :: Windows',
+            'Operating System :: POSIX :: Linux',
+            'Topic :: Games/Entertainment :: Arcade',
+            'Topic :: System :: Hardware :: Hardware Drivers'
+        ],
+
+        ext_modules=[module1])
