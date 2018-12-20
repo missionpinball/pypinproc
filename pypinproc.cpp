@@ -26,7 +26,7 @@ PinPROC_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
 	pinproc_PinPROCObject *self;
 
-	self = (pinproc_PinPROCObject *)type->tp_alloc(type, 0);
+	self = (pinproc_PinPROCObject *)type->tp_alloc(type, 1);
 	if (self != NULL) {
 		self->handle = kPRHandleInvalid;
 		self->dmdConfigured = false;
