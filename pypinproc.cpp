@@ -21,24 +21,6 @@ typedef struct {
 	unsigned char dmdMapping[dmdMappingSize];
 } pinproc_PinPROCObject;
 
-static PyObject *
-PinPROC_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
-{
-	pinproc_PinPROCObject *self;
-
-	self = (pinproc_PinPROCObject *)type->tp_alloc(type, 1);
-	if (self != NULL) {
-		self->handle = kPRHandleInvalid;
-		self->dmdConfigured = false;
-		for (int i = 0; i < dmdMappingSize; i++)
-		{
-			self->dmdMapping[i] = i;
-		}
-	}
-
-	return (PyObject *)self;
-}
-
 static void
 PinPROC_dealloc(PyObject* _self)
 {
@@ -111,6 +93,11 @@ PinPROC_init(pinproc_PinPROCObject *self, PyObject *args, PyObject *kwds)
 		PyErr_SetString(PyExc_IOError, PRGetLastErrorText());
 		return -1;
 	}
+
+    for (int i = 0; i < dmdMappingSize; i++)
+    {
+        self->dmdMapping[i] = i;
+    }
 
 	//if (self->machineType != kPRMachineCustom)
 	//{
@@ -1183,7 +1170,7 @@ static PyTypeObject pinproc_PinPROCType = {
 	0,                         /* tp_dictoffset */
 	(initproc)PinPROC_init,      /* tp_init */
 	0,                         /* tp_alloc */
-	PinPROC_new,                 /* tp_new */
+	0,                         /* tp_new */
 };
 
 
