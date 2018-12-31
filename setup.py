@@ -28,7 +28,7 @@ module1 = Extension("pinproc",
 
 setup(
         name="pypinproc",
-        version="2.1",
+        version="2.2",
 
         description='Python wrapper for libpinproc',
         long_description='''pypinproc is a native Python extension exposing the
