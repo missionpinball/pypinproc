@@ -694,13 +694,6 @@ PinPROC_write_data(pinproc_PinPROCObject *self, PyObject *args, PyObject *kwds)
 		return NULL;
 	}
 
-	// Always flush previously staged writes first.
-	if (PRFlushWriteData(self->handle) != kPRSuccess)
-	{
-		PyErr_SetString(PyExc_IOError, PRGetLastErrorText()); //"Error writing data");
-		return NULL;
-	}
-
 	if (PRWriteData(self->handle, module, address, 1, (uint32_t *)&data) == kPRSuccess)
 	{
 		Py_INCREF(Py_None);
