@@ -694,7 +694,7 @@ PinPROC_write_data(pinproc_PinPROCObject *self, PyObject *args, PyObject *kwds)
 		return NULL;
 	}
 
-	if (PRWriteData(self->handle, module, address, 1, (uint32_t *)&data) == kPRSuccess)
+	if (PRWriteDataUnbuffered(self->handle, module, address, 1, (uint32_t *)&data) == kPRSuccess)
 	{
 		Py_INCREF(Py_None);
 		return Py_None;
