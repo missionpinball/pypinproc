@@ -86,7 +86,9 @@ PinPROC_init(pinproc_PinPROCObject *self, PyObject *args, PyObject *kwds)
 		return -1;
 	}
 	//PRLogSetLevel(kPRLogVerbose);
+	Py_BEGIN_ALLOW_THREADS
 	self->handle = PRCreate(self->machineType);
+    Py_END_ALLOW_THREADS
 
 	if (self->handle == kPRHandleInvalid)
 	{
@@ -111,9 +113,16 @@ static PyObject *
 PinPROC_reset(pinproc_PinPROCObject *self, PyObject *args)
 {
 	uint32_t resetFlags;
-	if (!PyArg_ParseTuple(args, "i", &resetFlags))
+	if (!PyArg_ParseTuple(args, "i", &resetFlags)) {
 		return NULL;
-	if (PRReset(self->handle, resetFlags) == kPRFailure)
+    }
+
+    PRResult res;
+	Py_BEGIN_ALLOW_THREADS
+    res = PRReset(self->handle, resetFlags);
+    Py_END_ALLOW_THREADS
+
+	if (res == kPRFailure)
 	{
 		PyErr_SetString(PyExc_IOError, PRGetLastErrorText());
 		return NULL;
@@ -162,7 +171,9 @@ PinPROC_driver_update_global_config(pinproc_PinPROCObject *self, PyObject *args,
 	globals.watchdogResetTime = watchdogResetTime;
 
 	PRResult res;
-		res = PRDriverUpdateGlobalConfig(self->handle, &globals);
+	Py_BEGIN_ALLOW_THREADS
+	res = PRDriverUpdateGlobalConfig(self->handle, &globals);
+	Py_END_ALLOW_THREADS
 
 	if (res == kPRSuccess)
 	{
@@ -207,8 +218,11 @@ PinPROC_driver_update_group_config(pinproc_PinPROCObject *self, PyObject *args, 
 		group.active = active == Py_True;
 		group.disableStrobeAfter = disableStrobeAfter == Py_True;
 
+
 	PRResult res;
-		res = PRDriverUpdateGroupConfig(self->handle, &group);
+	Py_BEGIN_ALLOW_THREADS
+	res = PRDriverUpdateGroupConfig(self->handle, &group);
+	Py_END_ALLOW_THREADS
 
 	if (res == kPRSuccess)
 	{
@@ -233,7 +247,9 @@ PinPROC_driver_group_disable(pinproc_PinPROCObject *self, PyObject *args, PyObje
 	}
 
 	PRResult res;
+	Py_BEGIN_ALLOW_THREADS
 	res = PRDriverGroupDisable(self->handle, number);
+	Py_END_ALLOW_THREADS
 	if (res == kPRSuccess)
 	{
 		Py_INCREF(Py_None);
@@ -257,7 +273,9 @@ PinPROC_driver_pulse(pinproc_PinPROCObject *self, PyObject *args, PyObject *kwds
 	}
 
 	PRResult res;
+	Py_BEGIN_ALLOW_THREADS
 	res = PRDriverPulse(self->handle, number, milliseconds);
+	Py_END_ALLOW_THREADS
 	if (res == kPRSuccess)
 	{
 		Py_INCREF(Py_None);
@@ -281,7 +299,9 @@ PinPROC_driver_future_pulse(pinproc_PinPROCObject *self, PyObject *args, PyObjec
 	}
 
 	PRResult res;
+	Py_BEGIN_ALLOW_THREADS
 	res = PRDriverFuturePulse(self->handle, number, milliseconds, futureTime);
+	Py_END_ALLOW_THREADS
 	if (res == kPRSuccess)
 	{
 		Py_INCREF(Py_None);
@@ -307,7 +327,9 @@ PinPROC_driver_schedule(pinproc_PinPROCObject *self, PyObject *args, PyObject *k
 	}
 
 	PRResult res;
+	Py_BEGIN_ALLOW_THREADS
 	res = PRDriverSchedule(self->handle, number, (uint32_t)schedule, cycleSeconds, now == Py_True);
+	Py_END_ALLOW_THREADS
 	if (res == kPRSuccess)
 	{
 		Py_INCREF(Py_None);
@@ -330,7 +352,9 @@ PinPROC_driver_patter(pinproc_PinPROCObject *self, PyObject *args, PyObject *kwd
 		return NULL;
 
 	PRResult res;
+	Py_BEGIN_ALLOW_THREADS
 	res = PRDriverPatter(self->handle, number, millisOn, millisOff, originalOnTime, now == Py_True);
+	Py_END_ALLOW_THREADS
 	if (res == kPRSuccess)
 	{
 		Py_INCREF(Py_None);
@@ -353,7 +377,9 @@ PinPROC_driver_pulsed_patter(pinproc_PinPROCObject *self, PyObject *args, PyObje
 		return NULL;
 
 	PRResult res;
+	Py_BEGIN_ALLOW_THREADS
 	res = PRDriverPulsedPatter(self->handle, number, millisOn, millisOff, millisPatterTime, now == Py_True);
+	Py_END_ALLOW_THREADS
 	if (res == kPRSuccess)
 	{
 		Py_INCREF(Py_None);
@@ -376,8 +402,11 @@ PinPROC_driver_disable(pinproc_PinPROCObject *self, PyObject *args, PyObject *kw
 		return NULL;
 	}
 
-	PRResult res;
+    PRResult res;
+    Py_BEGIN_ALLOW_THREADS
 	res = PRDriverDisable(self->handle, number);
+    Py_END_ALLOW_THREADS
+
 	if (res == kPRSuccess)
 	{
 		Py_INCREF(Py_None);
@@ -472,9 +501,12 @@ PinPROC_driver_get_state(pinproc_PinPROCObject *self, PyObject *args, PyObject *
 		return NULL;
 	}
 
-	PRResult res;
-	PRDriverState driver;
+    PRResult res;
+    PRDriverState driver;
+    Py_BEGIN_ALLOW_THREADS
 	res = PRDriverGetState(self->handle, number, &driver);
+	Py_END_ALLOW_THREADS
+
 	if (res == kPRSuccess)
 	{
 		return PyDictFromDriverState(&driver);
@@ -500,7 +532,12 @@ PinPROC_driver_update_state(pinproc_PinPROCObject *self, PyObject *args, PyObjec
 	if (!PyDictToDriverState(dict, &driver))
 		return NULL;
 
-	if (PRDriverUpdateState(self->handle, &driver) == kPRSuccess)
+    PRResult result;
+    Py_BEGIN_ALLOW_THREADS
+    result = PRDriverUpdateState(self->handle, &driver);
+    Py_END_ALLOW_THREADS
+
+	if (result == kPRSuccess)
 	{
 		Py_INCREF(Py_None);
 		return Py_None;
@@ -520,7 +557,12 @@ PinPROC_switch_get_states(pinproc_PinPROCObject *self, PyObject *args)
 	PyObject *list = PyList_New(numSwitches);
 	PREventType procSwitchStates[numSwitches];
 	// Get all of the switch states from the P-ROC.
-	if (PRSwitchGetStates(self->handle, procSwitchStates, numSwitches) == kPRFailure)
+	PRResult result;
+	Py_BEGIN_ALLOW_THREADS
+	result = PRSwitchGetStates(self->handle, procSwitchStates, numSwitches);
+	Py_END_ALLOW_THREADS
+
+	if (result == kPRFailure)
 	{
 		PyErr_SetString(PyExc_IOError, "Error getting driver state");
 		return NULL;
@@ -603,7 +645,12 @@ PinPROC_switch_update_rule(pinproc_PinPROCObject *self, PyObject *args, PyObject
 		}
 	}
 
-	if (PRSwitchUpdateRule(self->handle, number, eventType, &rule, drivers, numDrivers, drive_outputs_now == Py_True) == kPRSuccess)
+    PRResult result;
+	Py_BEGIN_ALLOW_THREADS
+	result = PRSwitchUpdateRule(self->handle, number, eventType, &rule, drivers, numDrivers, drive_outputs_now == Py_True);
+	Py_END_ALLOW_THREADS
+
+	if (result == kPRSuccess)
 	{
 		if (drivers)
 			free(drivers);
@@ -665,7 +712,12 @@ PinPROC_aux_send_commands(pinproc_PinPROCObject *self, PyObject *args, PyObject 
 
 	//fprintf(stderr, "\n\nSending Aux Commands: numCommands:%d, addr:%d\n\n", numCommands, address);
 
-	if (PRDriverAuxSendCommands(self->handle, commands, numCommands, address) == kPRSuccess)
+    PRResult result;
+    Py_BEGIN_ALLOW_THREADS
+    result = PRDriverAuxSendCommands(self->handle, commands, numCommands, address);
+    Py_END_ALLOW_THREADS
+
+	if (result == kPRSuccess)
 	{
 		if (commands)
 			free(commands);
@@ -694,7 +746,12 @@ PinPROC_write_data(pinproc_PinPROCObject *self, PyObject *args, PyObject *kwds)
 		return NULL;
 	}
 
-	if (PRWriteDataUnbuffered(self->handle, module, address, 1, (uint32_t *)&data) == kPRSuccess)
+    PRResult result;
+    Py_BEGIN_ALLOW_THREADS
+    result = PRWriteDataUnbuffered(self->handle, module, address, 1, (uint32_t *)&data);
+    Py_END_ALLOW_THREADS
+
+	if (result == kPRSuccess)
 	{
 		Py_INCREF(Py_None);
 		return Py_None;
@@ -719,17 +776,31 @@ PinPROC_read_data(pinproc_PinPROCObject *self, PyObject *args, PyObject *kwds)
 		return NULL;
 	}
 
-	PRReadData(self->handle, module, address, 1, (uint32_t *)&data);
+    PRResult result;
+    Py_BEGIN_ALLOW_THREADS
+	result = PRReadData(self->handle, module, address, 1, (uint32_t *)&data);
+	Py_END_ALLOW_THREADS
 
-	PyObject* ret = PyLong_FromLong(data);
-	Py_INCREF(ret);
-	return ret;
+	if (result == kPRSuccess)
+	{
+        PyObject* ret = PyLong_FromLong(data);
+        Py_INCREF(ret);
+        return ret;
+	}
+	else
+	{
+		PyErr_SetString(PyExc_IOError, PRGetLastErrorText());
+		return NULL;
+	}
+
 }
 
 static PyObject *
 PinPROC_watchdog_tickle(pinproc_PinPROCObject *self, PyObject *args)
 {
+    Py_BEGIN_ALLOW_THREADS
 	PRDriverWatchdogTickle(self->handle);
+	Py_END_ALLOW_THREADS
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -742,7 +813,12 @@ PinPROC_get_events(pinproc_PinPROCObject *self, PyObject *args)
 	//const int maxEvents = 16;
 	const int maxEvents = 2048;
 	PREvent events[maxEvents];
-	int numEvents = PRGetEvents(self->handle, events, maxEvents);
+	int numEvents;
+
+	Py_BEGIN_ALLOW_THREADS
+	numEvents = PRGetEvents(self->handle, events, maxEvents);
+	Py_END_ALLOW_THREADS
+
 	if (numEvents < 0)
 	{
 		PyErr_SetString(PyExc_IOError, PRGetLastErrorText());
@@ -762,7 +838,11 @@ PinPROC_get_events(pinproc_PinPROCObject *self, PyObject *args)
 static PyObject *
 PinPROC_flush(pinproc_PinPROCObject *self, PyObject *args)
 {
-	PRResult res = PRFlushWriteData(self->handle);
+    PRResult res;
+    Py_BEGIN_ALLOW_THREADS
+	res = PRFlushWriteData(self->handle);
+    Py_END_ALLOW_THREADS
+
 	ReturnOnErrorAndSetIOError(res);
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -778,9 +858,10 @@ PinPROC_led_fade_rate(pinproc_PinPROCObject *self, PyObject *args, PyObject *kwd
 	{
 		return NULL;
 	}
-
 	PRResult res;
+    Py_BEGIN_ALLOW_THREADS
 	res = PRLEDFadeRate(self->handle, boardAddr, fadeRate);
+	Py_END_ALLOW_THREADS
 	if (res == kPRSuccess)
 	{
 		Py_INCREF(Py_None);
@@ -810,7 +891,10 @@ PinPROC_led_color(pinproc_PinPROCObject *self, PyObject *args, PyObject *kwds)
 	LED.LEDIndex = LEDIndex;
 
 	PRResult res;
+	Py_BEGIN_ALLOW_THREADS
 	res = PRLEDColor(self->handle, &LED, color);
+	Py_END_ALLOW_THREADS
+
 	if (res == kPRSuccess)
 	{
 		Py_INCREF(Py_None);
@@ -841,7 +925,10 @@ PinPROC_led_fade(pinproc_PinPROCObject *self, PyObject *args, PyObject *kwds)
 	LED.LEDIndex = LEDIndex;
 
 	PRResult res;
+	Py_BEGIN_ALLOW_THREADS
 	res = PRLEDFade(self->handle, &LED, color, fadeRate);
+	Py_END_ALLOW_THREADS
+
 	if (res == kPRSuccess)
 	{
 		Py_INCREF(Py_None);
@@ -871,7 +958,10 @@ PinPROC_led_fade_color(pinproc_PinPROCObject *self, PyObject *args, PyObject *kw
 	LED.LEDIndex = LEDIndex;
 
 	PRResult res;
+	Py_BEGIN_ALLOW_THREADS
 	res = PRLEDFadeColor(self->handle, &LED, color);
+	Py_END_ALLOW_THREADS
+
 	if (res == kPRSuccess)
 	{
 		Py_INCREF(Py_None);
@@ -947,8 +1037,10 @@ PinPROC_dmd_update_config(pinproc_PinPROCObject *self, PyObject *args, PyObject 
 		}
 	}
 
+    Py_BEGIN_ALLOW_THREADS
 	PRDMDUpdateConfig(self->handle, &dmdConfig);
 	self->dmdConfigured = true;
+	Py_END_ALLOW_THREADS
 
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -1024,7 +1116,9 @@ PinPROC_dmd_draw(pinproc_PinPROCObject *self, PyObject *args)
 		return NULL;
 	}
 
+    Py_BEGIN_ALLOW_THREADS
 	res = PRDMDDraw(self->handle, dots);
+	Py_END_ALLOW_THREADS
 	ReturnOnErrorAndSetIOError(res);
 
 	Py_INCREF(Py_None);
