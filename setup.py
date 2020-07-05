@@ -28,7 +28,7 @@ module1 = Extension("pinproc",
 
 setup(
         name="pypinproc",
-        version="2.2",
+        version="3.1",
 
         description='Python wrapper for libpinproc',
         long_description='''pypinproc is a native Python extension exposing the
@@ -49,10 +49,9 @@ setup(
             'Development Status :: 5 - Production/Stable',
             'Intended Audience :: Developers',
             'License :: OSI Approved :: MIT License',
-            'Programming Language :: Python :: 2.6',
-            'Programming Language :: Python :: 2.7',
-            'Programming Language :: Python :: 3.4',
             'Programming Language :: Python :: 3.5',
+            'Programming Language :: Python :: 3.6',
+            'Programming Language :: Python :: 3.7',
             'Natural Language :: English',
             'Operating System :: MacOS :: MacOS X',
             'Operating System :: Microsoft :: Windows',
