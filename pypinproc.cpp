@@ -5,9 +5,6 @@
 
 
 extern "C" {
-
-    static PRMachineType g_machineType;
-
     #define ReturnOnErrorAndSetIOError(res) { if (res != kPRSuccess) { PyErr_SetString(PyExc_IOError, PRGetLastErrorText()); return NULL; } }
 
     const static int dmdMappingSize = 16;
@@ -19,6 +16,7 @@ extern "C" {
         PRMachineType machineType; // We save it here because there's no "get machine type" in libpinproc.
         bool dmdConfigured;
         unsigned char dmdMapping[dmdMappingSize];
+        bool switches_configured;
     } pinproc_PinPROCObject;
 
     static void
@@ -100,6 +98,8 @@ extern "C" {
         {
             self->dmdMapping[i] = i;
         }
+
+        self->switches_configured = false;
 
         //if (self->machineType != kPRMachineCustom)
         //{
@@ -574,6 +574,55 @@ extern "C" {
         return list;
     }
 
+    static PyObject *
+    PinPROC_update_switch_config(pinproc_PinPROCObject *self, PyObject *args, PyObject *kwds)
+    {
+        PyObject *use_column_8_arg = Py_None;
+        bool use_column_9 = false;
+        int direct_matrix_scan_loop_time = 2;
+        int pulses_before_checking_rx = 10;
+        int inactive_pulses_after_burst = 12;
+        int pulses_per_burst = 6;
+        int pulse_half_period_time = 13;
+        bool clear = false;
+        static char *kwlist[] = {"use_column_8", "use_column_9", "direct_matrix_scan_loop_time",
+        "pulses_before_checking_rx", "inactive_pulses_after_burst", "pulses_per_burst", "pulse_half_period_time",
+        "clear", NULL};
+        if (!PyArg_ParseTupleAndKeywords(args, kwds, "|Opiiiiip", kwlist, &use_column_8_arg, &use_column_9,
+        &direct_matrix_scan_loop_time, &pulses_before_checking_rx, &inactive_pulses_after_burst, &pulses_per_burst,
+        &pulse_half_period_time, &clear))
+        {
+            return NULL;
+        }
+
+        bool use_column_8;
+        if (use_column_8_arg == Py_None) {
+            use_column_8 = self->machineType == kPRMachineWPC;
+        } else if (use_column_8_arg == Py_True) {
+            use_column_8 = true;
+        } else if (use_column_8_arg == Py_False) {
+            use_column_8 = false;
+        } else {
+            PyErr_SetString(PyExc_ValueError, "use_column_8 needs to be a bool or None");
+            return NULL;
+        }
+
+        PRSwitchConfig switchConfig;
+        switchConfig.clear = clear;
+        switchConfig.use_column_8 = use_column_8;
+        switchConfig.use_column_9 = use_column_9; // No WPC machines actually use this
+        switchConfig.hostEventsEnable = true;
+        switchConfig.directMatrixScanLoopTime = direct_matrix_scan_loop_time; // milliseconds
+        switchConfig.pulsesBeforeCheckingRX = pulses_before_checking_rx;
+        switchConfig.inactivePulsesAfterBurst = inactive_pulses_after_burst;
+        switchConfig.pulsesPerBurst = pulses_per_burst;
+        switchConfig.pulseHalfPeriodTime = pulse_half_period_time; // milliseconds
+        PRSwitchUpdateConfig(self->handle, &switchConfig);
+
+        self->switches_configured = true;
+
+        return Py_None;
+    }
 
     static PyObject *
     PinPROC_switch_update_rule(pinproc_PinPROCObject *self, PyObject *args, PyObject *kwds)
@@ -613,24 +662,16 @@ extern "C" {
             numDrivers = (int)PyList_Size(linked_driversObj);
         }
 
-        bool use_column_8;
-        use_column_8 = g_machineType == kPRMachineWPC;
-            static bool firstTime = true;
-            if (firstTime)
-            {
-                firstTime = false;
-                PRSwitchConfig switchConfig;
-                switchConfig.clear = false;
-                switchConfig.use_column_8 = use_column_8;
-                switchConfig.use_column_9 = false; // No WPC machines actually use this
-                switchConfig.hostEventsEnable = true;
-                switchConfig.directMatrixScanLoopTime = 2; // milliseconds
-                switchConfig.pulsesBeforeCheckingRX = 10;
-                switchConfig.inactivePulsesAfterBurst = 12;
-                switchConfig.pulsesPerBurst = 6;
-                switchConfig.pulseHalfPeriodTime = 13; // milliseconds
-                PRSwitchUpdateConfig(self->handle, &switchConfig);
+        if (! self->switches_configured) {
+            PyObject *args = PyTuple_New(0);
+            PyObject *kwds = PyDict_New();
+            PyObject* result = PinPROC_update_switch_config(self, args, kwds);
+            Py_DECREF(args);
+            Py_DECREF(kwds);
+            if (result == NULL) {
+                return NULL;
             }
+        }
 
         if (numDrivers > 0)
         {
@@ -1186,6 +1227,9 @@ extern "C" {
         {"switch_update_rule", (PyCFunction)PinPROC_switch_update_rule, METH_VARARGS | METH_KEYWORDS,
             "Sets the state of the specified driver"
         },
+        {"update_switch_config", (PyCFunction)PinPROC_update_switch_config, METH_VARARGS | METH_KEYWORDS,
+            "Update switch configuration"
+        },
         {"aux_send_commands", (PyCFunction)PinPROC_aux_send_commands, METH_VARARGS | METH_KEYWORDS,
             "Writes aux port commands into the Aux port instruction memory"
         },
@@ -1269,7 +1313,6 @@ extern "C" {
         if (!PyArg_ParseTupleAndKeywords(args, kwds, "OO", kwlist, &machineTypeObj, &str))
             return NULL;
         PRMachineType machineType = PyObjToMachineType(machineTypeObj);
-        g_machineType = machineType;
         return Py_BuildValue("i", PRDecode(machineType, PyStr_AsString(str)));
     }
 
@@ -1281,7 +1324,6 @@ extern "C" {
         if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", kwlist, &machineTypeObj))
             return NULL;
         PRMachineType machineType = PyObjToMachineType(machineTypeObj);
-        g_machineType = machineType;
         return Py_BuildValue("i", machineType);
     }
 
@@ -1390,21 +1432,20 @@ extern "C" {
     }
 
     static PyObject *
-    pinproc_aux_command_output_primary(PyObject *self, PyObject *args, PyObject *kwds)
+    pinproc_aux_command_output_primary(pinproc_PinPROCObject *self, PyObject *args, PyObject *kwds)
     {
         int data, extra_data, delay_time;
         static char *kwlist[] = {"data", "extra_data", "delay_time", NULL};
         if (!PyArg_ParseTupleAndKeywords(args, kwds, "iii", kwlist, &data, &extra_data, &delay_time))
             return NULL;
         PRDriverAuxCommand auxCommand;
-        if (g_machineType == kPRMachineWPCAlphanumeric) {
+        if (self->machineType == kPRMachineWPCAlphanumeric) {
             PRDriverAuxPrepareOutput(&auxCommand, data, extra_data, 8, 0, delay_time);
         }
-        else if (g_machineType == kPRMachineSternWhitestar ||
-                        g_machineType == kPRMachineSternSAM) {
+        else if (self->machineType == kPRMachineSternWhitestar || self->machineType == kPRMachineSternSAM) {
             PRDriverAuxPrepareOutput(&auxCommand, data, 0, 6, 1, delay_time);
         }
-        else if (g_machineType == kPRMachinePDB) {
+        else if (self->machineType == kPRMachinePDB) {
             // If you're using the P3-ROC aux port for a single device, you don't need to specify enables/muxEnables.
             // If you're using a P-ROC and/or want to specify enables/muxEnables, use pinproc_aux_command_output_custom instead.
             PRDriverAuxPrepareOutput(&auxCommand, data, 0, 0, 0, delay_time);
@@ -1417,15 +1458,14 @@ extern "C" {
     }
 
     static PyObject *
-    pinproc_aux_command_output_secondary(PyObject *self, PyObject *args, PyObject *kwds)
+    pinproc_aux_command_output_secondary(pinproc_PinPROCObject *self, PyObject *args, PyObject *kwds)
     {
         int data, extra_data, delay_time;
         static char *kwlist[] = {"data", "extra_data", "delay_time", NULL};
         if (!PyArg_ParseTupleAndKeywords(args, kwds, "iii", kwlist, &data, &extra_data, &delay_time))
             return NULL;
         PRDriverAuxCommand auxCommand;
-        if (g_machineType == kPRMachineSternWhitestar ||
-                        g_machineType == kPRMachineSternSAM) {
+        if (self->machineType == kPRMachineSternWhitestar || self->machineType == kPRMachineSternSAM) {
             PRDriverAuxPrepareOutput(&auxCommand, data, 0, 11, 1, delay_time);
         }
         else return NULL;
@@ -1479,7 +1519,7 @@ extern "C" {
             {"aux_command_output_secondary", (PyCFunction)pinproc_aux_command_output_secondary, METH_VARARGS | METH_KEYWORDS, "Return a copy of the given secondary aux output command"},
             {"aux_command_delay", (PyCFunction)pinproc_aux_command_delay, METH_VARARGS | METH_KEYWORDS, "Return a copy of the given aux delay command"},
             {"aux_command_jump", (PyCFunction)pinproc_aux_command_jump, METH_VARARGS | METH_KEYWORDS, "Return a copy of the given aux jump command"},
-            { "aux_command_disable", (PyCFunction)pinproc_aux_command_disable, METH_VARARGS | METH_KEYWORDS, "Return a copy of the given aux command disabled" },
+            {"aux_command_disable", (PyCFunction)pinproc_aux_command_disable, METH_VARARGS | METH_KEYWORDS, "Return a copy of the given aux command disabled" },
             {NULL, NULL, 0, NULL}};
 
     MODULE_INIT_FUNC(pinproc)
