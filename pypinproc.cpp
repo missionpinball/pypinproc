@@ -805,9 +805,33 @@ extern "C" {
     }
 
     static PyObject *
+    PinPROC_write_data_buffered(pinproc_PinPROCObject *self, PyObject *args, PyObject *kwds)
+    {
+        // Same as PinPROC_write_data but without flushing every time
+      int module;
+      int address;
+      int data;
+      static char *kwlist[] = {"module", "address", "data", NULL};
+      if (!PyArg_ParseTupleAndKeywords(args, kwds, "iiI", kwlist, &module, &address, &data))
+      {
+        return NULL;
+      }
+
+      if (PRWriteData(self->handle, module, address, 1, (uint32_t *)&data) == kPRSuccess)
+      {
+        Py_INCREF(Py_None);
+        return Py_None;
+      }
+      else
+      {
+        PyErr_SetString(PyExc_IOError, PRGetLastErrorText()); //"Error writing data");
+        return NULL;
+      }
+    }
+
+    static PyObject *
     PinPROC_read_data(pinproc_PinPROCObject *self, PyObject *args, PyObject *kwds)
     {
-
         int module;
         int address;
         int data;
@@ -1235,6 +1259,9 @@ extern "C" {
         },
         {"write_data", (PyCFunction)PinPROC_write_data, METH_VARARGS | METH_KEYWORDS,
             "Write data directly to a P-ROC memory address"
+        },
+        {"write_data_buffered", (PyCFunction)PinPROC_write_data_buffered, METH_VARARGS | METH_KEYWORDS,
+            "Write data directly to a P-ROC memory address without flushing"
         },
         {"read_data", (PyCFunction)PinPROC_read_data, METH_VARARGS | METH_KEYWORDS,
             "Reads data directly from a P-ROC memory address"
