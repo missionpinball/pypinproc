@@ -21,8 +21,12 @@ else:
 
 def pkgconfig(package, kw):
     flag_map = {'-I': 'include_dirs', '-L': 'library_dirs', '-l': 'libraries'}
-    output = subprocess.getoutput(
+    exitcode, output = subprocess.getstatusoutput(
         'pkg-config --cflags --libs {}'.format(package))
+
+    if exitcode != 0:
+        raise AssertionError("Could not find lib {}: {}".format(package, output))
+
     for token in output.strip().split():
         kw.setdefault(flag_map.get(token[:2]), []).append(token[2:])
     return kw
