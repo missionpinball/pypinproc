@@ -1,4 +1,5 @@
 ﻿import os
+import subprocess
 from setuptools import setup, Extension
 
 extra_compile_args = ['-O0', '-g']
@@ -13,18 +14,30 @@ if 'ARCH' in os.environ:
 
 if os.name == 'nt':
     # Windows
-    libraries = ['pinproc', 'ftd2xx']
+    libraries = ['pinproc', 'libftd2xx']
 else:
     # Linux
-    libraries = ['usb', 'ftdi1', 'pinproc']
+    libraries = ['libusb', 'libftdi1', 'pinproc']
+
+def pkgconfig(package, kw):
+    flag_map = {'-I': 'include_dirs', '-L': 'library_dirs', '-l': 'libraries'}
+    output = subprocess.getoutput(
+        'pkg-config --cflags --libs {}'.format(package))
+    for token in output.strip().split():
+        kw.setdefault(flag_map.get(token[:2]), []).append(token[2:])
+    return kw
+
+kw = {}
+for library in libraries:
+    kw = pkgconfig(library, kw)
+
 
 module1 = Extension("pinproc",
-                    include_dirs=['../libpinproc/include'],
-                    libraries=libraries,
-                    library_dirs=['/usr/local/lib', '../libpinproc/bin'],
                     extra_compile_args=extra_compile_args,
                     extra_link_args=extra_link_args,
-                    sources=['pypinproc.cpp', 'dmdutil.cpp', 'dmd.c'])
+                    sources=['pypinproc.cpp', 'dmdutil.cpp', 'dmd.c'],
+                    **kw
+                    )
 
 setup(
         name="pypinproc",
