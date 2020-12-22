@@ -1,6 +1,6 @@
 #include <Python.h>
 #include "py3c.h"
-#include "../libpinproc/include/pinproc.h"
+#include "pinproc.h"
 #include "dmdutil.h"
 
 
