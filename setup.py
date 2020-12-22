@@ -1,6 +1,6 @@
 ﻿import os
-import subprocess
 from setuptools import setup, Extension
+from subprocess import check_output, CalledProcessError, STDOUT
 
 extra_compile_args = ['-O0', '-g']
 extra_compile_args.append('-Wno-write-strings')  # fix "warning: deprecated conversion from string constant to 'char*'"
@@ -19,13 +19,23 @@ else:
     # Linux
     libraries = ['libusb', 'libftdi1', 'pinproc']
 
+def getstatusoutput(cmd):
+    try:
+        data = check_output(cmd, shell=True, universal_newlines=True, stderr=STDOUT)
+        status = 0
+    except CalledProcessError as ex:
+        data = ex.output
+        status = ex.returncode
+    if data[-1:] == '\n':
+        data = data[:-1]
+    return status, data
+
 def pkgconfig(package, kw):
     flag_map = {'-I': 'include_dirs', '-L': 'library_dirs', '-l': 'libraries'}
-    exitcode, output = subprocess.getstatusoutput(
-        'pkg-config --cflags --libs {}'.format(package))
-
-    if exitcode != 0:
-        raise AssertionError("Could not find lib {}: {}".format(package, output))
+    try:
+        output = check_output('pkg-config --cflags --libs {}'.format(package), shell=True, universal_newlines=True, stderr=STDOUT)
+    except CalledProcessError as ex:
+        raise AssertionError("Could not find lib {}: {}".format(package, ex.output))
 
     for token in output.strip().split():
         kw.setdefault(flag_map.get(token[:2]), []).append(token[2:])
