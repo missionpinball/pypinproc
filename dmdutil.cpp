@@ -133,7 +133,7 @@ DMDBuffer_set_dot(pinproc_DMDBufferObject *self, PyObject *args, PyObject *kwds)
 		PyErr_SetString(PyExc_ValueError, "X or Y are out of range");
 		return NULL;
 	}
-	
+
 	DMDFrameSetDot(self->frame, DMDPointMake(x, y), value);
 
 	Py_INCREF(Py_None);
@@ -149,9 +149,9 @@ DMDBuffer_fill_rect(pinproc_DMDBufferObject *self, PyObject *args, PyObject *kwd
 	{
 		return NULL;
 	}
-	
+
 	DMDFrameFillRect(self->frame, DMDRectMake(x0, y0, width, height), (DMDColor)value);
-	
+
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -164,13 +164,13 @@ DMDBuffer_copy_to_rect(pinproc_DMDBufferObject *self, PyObject *args, PyObject *
 	unsigned dst_x, dst_y, src_x, src_y, width, height;
 	const char *opStr = NULL;
 	static char *kwlist[] = {"dst", "dst_x", "dst_y", "src_x", "src_y", "width", "height", "op", NULL};
-	if (!PyArg_ParseTupleAndKeywords(args, kwds, "OIIIIII|s", kwlist, &dst, &dst_x, &dst_y, &src_x, &src_y, &width, &height, &opStr))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "OiiIIII|s", kwlist, &dst, &dst_x, &dst_y, &src_x, &src_y, &width, &height, &opStr))
 	{
 		return NULL;
 	}
-	
+
 	DMDBlendMode blendMode = DMDBlendModeCopy;
-	
+
 	if (opStr == NULL || strcmp(opStr, "copy") == 0)
 		blendMode = DMDBlendModeCopy;
 	else if(strcmp(opStr, "add") == 0)
@@ -188,11 +188,11 @@ DMDBuffer_copy_to_rect(pinproc_DMDBufferObject *self, PyObject *args, PyObject *
 		PyErr_SetString(PyExc_ValueError, "Operation type not recognized.");
 		return NULL;
 	}
-	
+
 	DMDRect srcRect = DMDRectMake(src_x, src_y, width, height);
 	DMDPoint dstPoint = DMDPointMake(dst_x, dst_y);
 	DMDFrameCopyRect(src->frame, srcRect, dst->frame, dstPoint, blendMode);
-	
+
 	Py_INCREF(Py_None);
 	return Py_None;
 }
